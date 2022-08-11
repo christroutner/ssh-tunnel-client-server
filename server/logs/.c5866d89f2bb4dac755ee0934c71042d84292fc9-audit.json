@@ -1,0 +1,14 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 5
+    },
+    "auditLog": "/home/trout/work/personal/ssh-tunnel-client-server/server/logs/.c5866d89f2bb4dac755ee0934c71042d84292fc9-audit.json",
+    "files": [
+        {
+            "date": 1660252940532,
+            "name": "/home/trout/work/personal/ssh-tunnel-client-server/server/logs/koa-test-2022-08-11.log",
+            "hash": "64037f8343e886e20b0dbf6da17d9c1a"
+        }
+    ]
+}
