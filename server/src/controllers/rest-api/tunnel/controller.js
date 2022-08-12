@@ -1,6 +1,6 @@
 // const wlogger = require('../../lib/wlogger')
 
-// let _this
+let _this
 class TunnelRESTController {
   // constructor () {
   //   // Encapsulate dependencies
@@ -11,6 +11,8 @@ class TunnelRESTController {
 
   constructor (localConfig = {}) {
     this.livenessState = localConfig.livenessState
+
+    _this = this
   }
 
   // curl -H "Content-Type: application/json" -X GET localhost:4200/tunnel/
@@ -20,9 +22,9 @@ class TunnelRESTController {
       console.log('getClientStatus() fired')
       // const users = await _this.userLib.getAllUsers();
 
-      console.log(`this.livenessState: ${this.livenessState}`)
+      console.log(`this.livenessState: ${_this.livenessState}`)
 
-      ctx.body = { reset: this.livenessState }
+      ctx.body = { reset: _this.livenessState }
     } catch (err) {
       console.error('Error in controller.js/getClientStatus(): '.err)
       ctx.throw(422, err.message)
