@@ -51,7 +51,7 @@ class TimerControllers {
   // ssh tunnels.
   async checkClientLiveness () {
     try {
-      const result = await this.axios.get('http://localhost:4201/liveness')
+      const result = await _this.axios.get('http://localhost:4201/liveness')
       console.log('result.data: ', result.data)
     } catch (err) {
       console.error('Error in checkClientLiveness(): ', err)
