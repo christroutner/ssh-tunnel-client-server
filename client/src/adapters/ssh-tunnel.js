@@ -29,6 +29,10 @@ class SSHTunnel {
       console.log(`Port ${this.config.clientSSHPort} on this client has been forwarded to port ${this.config.serverSSHPort} on the server.`)
       // console.log("cp: ", cp);
 
+      // Open SSH tunnel for the liveness endpoint
+      this.openTunnel(this.config.privKey, this.config.clientAlivenessPort, this.config.serverIp, 'trout', this.config.clientAlivenessPort)
+      console.log(`Liveness port ${this.config.clientAlivenessPort} has been port forwarded to server.`)
+
       this.reportRenewalTime()
 
       setInterval(async function () {
