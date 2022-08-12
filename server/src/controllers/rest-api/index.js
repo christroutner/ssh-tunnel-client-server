@@ -30,6 +30,8 @@ class RESTControllers {
       )
     }
 
+    this.livenessState = localConfig.livenessState
+
     // console.log('Controllers localConfig: ', localConfig)
   }
 
@@ -55,7 +57,7 @@ class RESTControllers {
     const logsRESTController = new LogsRESTController(dependencies)
     logsRESTController.attach(app)
 
-    const tunnelRESTController = new TunnelRESTController(dependencies)
+    const tunnelRESTController = new TunnelRESTController(dependencies, this.livenessState)
     tunnelRESTController.attach(app)
   }
 }

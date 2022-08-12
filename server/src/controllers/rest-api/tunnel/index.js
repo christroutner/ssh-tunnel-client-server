@@ -45,7 +45,8 @@ class TunnelRouter {
 
     const dependencies = {
       adapters: this.adapters,
-      useCases: this.useCases
+      useCases: this.useCases,
+      livenessState: localConfig.livenessState
     }
 
     this.tunnelRESTController = new TunnelRESTControllerLib(dependencies)
