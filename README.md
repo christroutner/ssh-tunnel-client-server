@@ -15,6 +15,14 @@ By default these are the features:
 
 The bi-directional information between Client and Server ensure that the tunnels are renewed whenever it gets disconnected. Additional ports can be forwarded, it's not limited to just the two illustrated above.
 
+## Setup
+It is assumed this app is being run on an Ubuntu Linux server and client.
+
+By default, sshd on the server will only forward ports locally (127.0.0.1). It will not make the ports available to the public. If you want to make the port available to the public, you need to modify `/etc/ssh/sshd_config` file. Set the following config:
+- `GatewayPorts yes`
+
+This command can be used to see what ports on the server are listening and what inferfaces are exposed:
+- `sudo netstat -tulpn | grep LISTEN`
 
 ## Requirements
 * node __^14+__

@@ -26,7 +26,7 @@ class TimerControllers {
 
     // Library state
     this.state = {
-      exampleTime: 60000 * 0.5
+      exampleTime: 60000 * 50
     }
 
     _this = this

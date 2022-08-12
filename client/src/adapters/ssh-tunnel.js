@@ -24,7 +24,9 @@ class SSHTunnel {
   // on the particular needs for the client.
   async startSshTunnel () {
     try {
-      let cp = this.openTunnel(this.config.privKey, this.config.clientSSHPort, this.config.serverIp, this.config.serverSSHPort)
+      let cp = this.openTunnel(this.config.privKey, this.config.clientSSHPort, this.config.serverIp, 'trout', this.config.serverSSHPort)
+      console.log('SSH tunnel opened between client and server.')
+      console.log(`Port ${this.config.clientSSHPort} on this client has been forwarded to port ${this.config.serverSSHPort} on the server.`)
       // console.log("cp: ", cp);
 
       this.reportRenewalTime()
@@ -38,7 +40,7 @@ class SSHTunnel {
           console.log('Renewing tunnel')
           _this.reportRenewalTime()
 
-          cp = _this.openTunnel(this.config.privKey, this.config.clientSSHPort, this.config.serverIp, this.config.serverSSHPort)
+          cp = _this.openTunnel(this.config.privKey, this.config.clientSSHPort, this.config.serverIp, 'trout', this.config.serverSSHPort)
         }
       }, this.config.renewalPeriod)
 
@@ -75,7 +77,7 @@ class SSHTunnel {
         '-R',
         `${remotePort}:localhost:${localPort}`,
         '-o',
-        'ServerAliveInterval=60',
+        'ServerAliveInterval=30',
         `${username}@${remoteIp}`
       ])
 

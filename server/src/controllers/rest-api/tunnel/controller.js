@@ -9,8 +9,8 @@ class TunnelRESTController {
   //   // _this = this
   // }
 
-  // curl -H "Content-Type: application/json" -X GET localhost:5001/tunnel/
-  // curl -H "Content-Type: application/json" -X GET http://157.90.20.129:5001/tunnel/
+  // curl -H "Content-Type: application/json" -X GET localhost:4200/tunnel/
+  // curl -H "Content-Type: application/json" -X GET http://157.90.20.129:4200/tunnel/
   async getClientStatus (ctx) {
     try {
       console.log('getClientStatus() fired')
@@ -18,7 +18,7 @@ class TunnelRESTController {
 
       ctx.body = { reset: false }
     } catch (err) {
-      console.error('Error in controllerjs/checkOptiD(): '.err)
+      console.error('Error in controller.js/getClientStatus(): '.err)
       ctx.throw(422, err.message)
     }
   }
