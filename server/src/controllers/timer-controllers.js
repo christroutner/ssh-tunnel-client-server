@@ -3,6 +3,9 @@
   kicked off periodicially.
 */
 
+// Global npm libraries
+const axios = require('axios')
+
 // Used to retain scope of 'this', when the scope is lost.
 let _this
 
@@ -22,11 +25,14 @@ class TimerControllers {
       )
     }
 
+    // Encapsulate dependencies
+    this.axios = axios
+
     this.debugLevel = localConfig.debugLevel
 
     // Library state
     this.state = {
-      exampleTime: 60000 * 50
+      exampleTime: 60000 * 0.25
     }
 
     _this = this
@@ -36,7 +42,20 @@ class TimerControllers {
 
   // Start all the time-based controllers.
   startTimers () {
-    this.state.exampleInterval = setInterval(this.exampleTimerController, this.state.exampleTime)
+    // this.state.exampleInterval = setInterval(this.exampleTimerController, this.state.exampleTime)
+    this.state.livenessInterval = setInterval(this.checkClientLiveness, this.state.exampleTime)
+  }
+
+  // Queries the liveness REST API endpoint on the client. If the client fails
+  // to respond, the reset flag is set which instructs the client to renew its
+  // ssh tunnels.
+  async checkClientLiveness () {
+    try {
+      const result = await this.axios.get('http://localhost:4201/liveness')
+      console.log('result.data: ', result.data)
+    } catch (err) {
+      console.error('Error in checkClientLiveness(): ', err)
+    }
   }
 
   // Poll the apps wallet address to see if new trades have come in.
