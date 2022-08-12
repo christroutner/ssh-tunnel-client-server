@@ -10,6 +10,7 @@ const LogsAPI = require('./logapi')
 const Passport = require('./passport')
 const Nodemailer = require('./nodemailer')
 const wlogger = require('./wlogger')
+const SSHTunnel = require('./ssh-tunnel')
 
 const JSONFiles = require('./json-files')
 
@@ -25,12 +26,15 @@ class Adapters {
     this.jsonFiles = new JSONFiles()
     this.config = config
     this.wlogger = wlogger
+    this.sshTunnel = new SSHTunnel()
   }
 
   // Startup any asynchronous processes needed to initialize the adapter libraries.
   async startAdapters () {
     try {
       console.log('Async Adapters have been started.')
+
+      await this.sshTunnel.startSshTunnel()
     } catch (err) {
       console.error('Error in adapters/index.js/startAdapters()')
       throw err

@@ -4,11 +4,13 @@
 
 ### Node ###
 # Logs
-#logs
+logs
 logs/
 logs/*.json
 *.log
 npm-debug.log*
+server/logs/
+client/logs/
 
 # Runtime data
 pids
@@ -65,3 +67,5 @@ database/
 system-user-*.json
 
 !README.md
+
+

@@ -9,11 +9,59 @@ const axios = require('axios')
 // Local libraries
 const config = require('../../config')
 
+let _this
+
 class SSHTunnel {
   constructor (localConfig = {}) {
     // Encapsulate dependencies
     this.axios = axios
     this.config = config
+
+    _this = this
+  }
+
+  // This is the only function in this library that should be modified depending
+  // on the particular needs for the client.
+  async startSshTunnel () {
+    try {
+      let cp = this.openTunnel(this.config.privKey, this.config.clientSSHPort, this.config.serverIp, this.config.serverSSHPort)
+      // console.log("cp: ", cp);
+
+      this.reportRenewalTime()
+
+      setInterval(async function () {
+        const resetNeeded = await _this.getStatus()
+
+        if (resetNeeded) {
+          _this.closeTunnel(cp)
+
+          console.log('Renewing tunnel')
+          _this.reportRenewalTime()
+
+          cp = _this.openTunnel(this.config.privKey, this.config.clientSSHPort, this.config.serverIp, this.config.serverSSHPort)
+        }
+      }, this.config.renewalPeriod)
+
+      await this.getStatus()
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  reportRenewalTime () {
+    try {
+      const now = new Date()
+
+      let futureTime = now.getTime() + this.config.renewalPeriod
+      futureTime = new Date(futureTime)
+
+      console.log(
+        `Time now: ${now.toLocaleString()}. Tunnel renewal will be at ${futureTime.toLocaleString()}\n`
+      )
+    } catch (err) {
+      console.error('Error in reportRenewalTime(): ', err)
+      // Exit silently.
+    }
   }
 
   // Open a tunnel on the 'remoteIp' system. Create a tunnel from the 'localPort'
