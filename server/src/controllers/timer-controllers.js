@@ -33,7 +33,7 @@ class TimerControllers {
 
     // Library state
     this.state = {
-      exampleTime: 60000 * 2
+      exampleTime: 60000 * 0.25
     }
 
     _this = this
@@ -57,6 +57,7 @@ class TimerControllers {
 
       if (result.data.success) {
         console.log('Client SSH tunnel is alive. Doing nothing.')
+        this.livenessState = true
       }
     } catch (err) {
       // console.error('Error in checkClientLiveness(): ', err)
