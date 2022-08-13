@@ -6,7 +6,7 @@
 # For information on these settings, check out client/config/env/common.js
 
 # Client specific settings
-export PORT=4201
+export PORT=4200
 export SSH_KEY=~/.ssh/fullstack
 export CLIENT_SSH_PORT=22
 export CLIENT_ALIVE_PORT=4201
