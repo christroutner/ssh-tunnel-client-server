@@ -10,7 +10,7 @@ class TunnelRESTController {
   // }
 
   constructor (localConfig = {}) {
-    this.livenessState = localConfig.livenessState
+    this.livenessState = false || localConfig.livenessState
 
     _this = this
   }
