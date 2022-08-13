@@ -32,9 +32,9 @@ class SSHTunnel {
       this.reportRenewalTime()
 
       setInterval(async function () {
-        const resetNeeded = await _this.getStatus()
+        const resetTunnels = await _this.getStatus()
 
-        if (resetNeeded) {
+        if (resetTunnels) {
           _this.closeAllTunnels()
 
           console.log('Renewing tunnel')
