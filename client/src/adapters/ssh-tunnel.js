@@ -120,7 +120,7 @@ class SSHTunnel {
   }
 
   // Close all tunnels
-  async closeAllTunnels () {
+  closeAllTunnels () {
     for (let i = 0; i < this.cps.length; i++) {
       this.closeTunnel(this.cps[i])
     }
@@ -142,7 +142,7 @@ class SSHTunnel {
     try {
       const statusUrl = `http://${this.config.serverIp}:${this.config.serverRestAPI}/tunnel`
       const result = await this.axios.get(statusUrl)
-      console.log(`Reset needed? ${result.data.reset}`)
+      console.log(`Connection OK? ${result.data.reset}`)
 
       const retVal = result.data.reset
 

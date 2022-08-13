@@ -45,6 +45,19 @@ class TimerControllers {
       const status = await _this.adapters.sshTunnel.getStatus()
 
       console.log(`\ncheckResetTimerController() status: ${status}\n`)
+
+      // If status comes back as false, then reset the SSH tunnels
+      if (!status) {
+        console.log('Connection status reported false. Closing and reopening all forwarded ports.')
+
+        // Close all tunnels
+        _this.adapters.sshTunnel.closeAllTunnels()
+
+        await sleep(5000)
+
+        // Reopen all tunnels
+        _this.adapters.sshTunnel.openAllTunnels()
+      }
     } catch (err) {
       console.error('Error in checkResetTimerController(): ', err)
       // This is a top-level function. Do not throw an error.
@@ -75,6 +88,10 @@ class TimerControllers {
       return false
     }
   }
+}
+
+function sleep (ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 module.exports = TimerControllers
