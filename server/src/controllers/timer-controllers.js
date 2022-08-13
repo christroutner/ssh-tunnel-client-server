@@ -26,7 +26,7 @@ class TimerControllers {
     }
 
     // Encapsulate dependencies
-    this.livenessState = localConfig.livenessState
+    // this.livenessState = localConfig.livenessState
     this.axios = axios
 
     this.debugLevel = localConfig.debugLevel
@@ -57,14 +57,18 @@ class TimerControllers {
 
       if (result.data.success) {
         console.log('Client SSH tunnel is alive. Doing nothing.')
-        this.livenessState = true
+        // this.livenessState = true
+
+        _this.adapters.liveness.setLiveness(true)
       }
     } catch (err) {
-      // console.error('Error in checkClientLiveness(): ', err)
+      console.error('Error in checkClientLiveness(): ', err)
+
       console.log('Client SSH tunnel is down. Flagging reset.')
 
       console.log('Timer controller is marking liveness state as false.')
-      this.livenessState = false
+      // this.livenessState = false
+      _this.adapters.liveness.setLiveness(false)
     }
   }
 

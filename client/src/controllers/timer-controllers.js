@@ -26,7 +26,7 @@ class TimerControllers {
 
     // Library state
     this.state = {
-      exampleTime: 60000 * 50
+      exampleTime: 60000 * 0.5
     }
 
     _this = this
@@ -36,7 +36,19 @@ class TimerControllers {
 
   // Start all the time-based controllers.
   startTimers () {
-    this.state.exampleInterval = setInterval(this.exampleTimerController, this.state.exampleTime)
+    // this.state.exampleInterval = setInterval(this.exampleTimerController, this.state.exampleTime)
+    setInterval(this.checkResetTimerController, this.state.exampleTime)
+  }
+
+  async checkResetTimerController () {
+    try {
+      const status = await _this.adapters.sshTunnel.getStatus()
+
+      console.log(`\ncheckResetTimerController() status: ${status}\n`)
+    } catch (err) {
+      console.error('Error in checkResetTimerController(): ', err)
+      // This is a top-level function. Do not throw an error.
+    }
   }
 
   // Poll the apps wallet address to see if new trades have come in.

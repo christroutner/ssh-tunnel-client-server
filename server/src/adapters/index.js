@@ -4,16 +4,15 @@
   https://troutsblog.com/blog/clean-architecture
 */
 
-// Load individual adapter libraries.
+// Load libraries.
 const LocalDB = require('./localdb')
 const LogsAPI = require('./logapi')
 const Passport = require('./passport')
 const Nodemailer = require('./nodemailer')
 const wlogger = require('./wlogger')
-
 const JSONFiles = require('./json-files')
-
 const config = require('../../config')
+const Liveness = require('./liveness')
 
 class Adapters {
   constructor (localConfig = {}) {
@@ -25,6 +24,7 @@ class Adapters {
     this.jsonFiles = new JSONFiles()
     this.config = config
     this.wlogger = wlogger
+    this.liveness = new Liveness()
   }
 
   // Startup any asynchronous processes needed to initialize the adapter libraries.

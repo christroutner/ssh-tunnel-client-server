@@ -2,19 +2,33 @@
 
 let _this
 class TunnelRESTController {
-  // constructor () {
-  //   // Encapsulate dependencies
-  //   // this.User = User
-  //   // this.userLib = new UserLib()
-  //   // _this = this
-  // }
-
   constructor (localConfig = {}) {
-    this.livenessState = false || localConfig.livenessState
-    // this.livenessState = false
+    // Dependency Injection.
+    this.adapters = localConfig.adapters
+    if (!this.adapters) {
+      throw new Error(
+        'Instance of Adapters library required when instantiating Tunnel REST Controller.'
+      )
+    }
+    this.useCases = localConfig.useCases
+    if (!this.useCases) {
+      throw new Error(
+        'Instance of Use Cases library required when instantiating Tunnel REST Controller.'
+      )
+    }
 
+    // Encapsulate dependencies
+    // this.User = User
+    // this.userLib = new UserLib()
     _this = this
   }
+
+  // constructor (localConfig = {}) {
+  //   this.livenessState = false || localConfig.livenessState
+  //   // this.livenessState = false
+  //
+  //   _this = this
+  // }
 
   // curl -H "Content-Type: application/json" -X GET localhost:4200/tunnel/
   // curl -H "Content-Type: application/json" -X GET http://157.90.20.129:4200/tunnel/
@@ -23,9 +37,11 @@ class TunnelRESTController {
       console.log('getClientStatus() fired')
       // const users = await _this.userLib.getAllUsers();
 
-      console.log(`this.livenessState: ${_this.livenessState}`)
+      const livenessState = _this.adapters.liveness.getLiveness()
 
-      ctx.body = { reset: _this.livenessState }
+      console.log(`this.livenessState: ${livenessState}`)
+
+      ctx.body = { reset: livenessState }
     } catch (err) {
       console.error('Error in controller.js/getClientStatus(): '.err)
       ctx.throw(422, err.message)
