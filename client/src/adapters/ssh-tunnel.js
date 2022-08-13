@@ -32,12 +32,13 @@ class SSHTunnel {
       this.reportRenewalTime()
 
       setInterval(async function () {
-        const resetTunnels = await _this.getStatus()
+        const tunnelsAreOk = await _this.getStatus()
 
-        if (resetTunnels) {
+        if (!tunnelsAreOk) {
+          console.log('Closing tunnels.')
           _this.closeAllTunnels()
 
-          console.log('Renewing tunnel')
+          console.log('Renewing tunnels.')
           _this.reportRenewalTime()
 
           // cp = _this.openTunnel(this.config.privKey, this.config.clientSSHPort, this.config.serverIp, 'trout', this.config.serverSSHPort)
