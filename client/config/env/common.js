@@ -23,6 +23,7 @@ const config = {
 
   // SERVER SPECIFIC SETTINGS
   serverIp: process.env.SERVER_IP ? process.env.SERVER_IP : '5.161.134.113',
+  serverUser: process.env.SERVER_USER ? process.env.SERVER_USER : 'trout',
   // clientSSHPort gets forwarded to this port.
   serverSSHPort: process.env.SERVER_SSH_PORT ? process.env.SERVER_SSH_PORT : 2222,
   // client polls this port to see if needs to renew the SSH tunnel.

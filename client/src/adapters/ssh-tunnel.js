@@ -17,6 +17,9 @@ class SSHTunnel {
     this.axios = axios
     this.config = config
 
+    // Holds child processes
+    this.cps = []
+
     _this = this
   }
 
@@ -24,14 +27,7 @@ class SSHTunnel {
   // on the particular needs for the client.
   async startSshTunnel () {
     try {
-      let cp = this.openTunnel(this.config.privKey, this.config.clientSSHPort, this.config.serverIp, 'trout', this.config.serverSSHPort)
-      console.log('SSH tunnel opened between client and server.')
-      console.log(`Port ${this.config.clientSSHPort} on this client has been forwarded to port ${this.config.serverSSHPort} on the server.`)
-      // console.log("cp: ", cp);
-
-      // Open SSH tunnel for the liveness endpoint
-      this.openTunnel(this.config.privKey, this.config.clientAlivenessPort, this.config.serverIp, 'trout', this.config.clientAlivenessPort)
-      console.log(`Liveness port ${this.config.clientAlivenessPort} has been port forwarded to server.`)
+      await this.openAllTunnels()
 
       this.reportRenewalTime()
 
@@ -39,18 +35,45 @@ class SSHTunnel {
         const resetNeeded = await _this.getStatus()
 
         if (resetNeeded) {
-          _this.closeTunnel(cp)
+          _this.closeAllTunnels()
 
           console.log('Renewing tunnel')
           _this.reportRenewalTime()
 
-          cp = _this.openTunnel(this.config.privKey, this.config.clientSSHPort, this.config.serverIp, 'trout', this.config.serverSSHPort)
+          // cp = _this.openTunnel(this.config.privKey, this.config.clientSSHPort, this.config.serverIp, 'trout', this.config.serverSSHPort)
+          await _this.openAllTunnels()
         }
       }, this.config.renewalPeriod)
 
       await this.getStatus()
     } catch (err) {
       console.error(err)
+    }
+  }
+
+  // This function is called to open all the port tunnels between client and server.
+  async openAllTunnels () {
+    // Open SSH tunnel.
+    let cp = this.openTunnel(this.config.privKey, this.config.clientSSHPort, this.config.serverIp, this.config.serverUser, this.config.serverSSHPort)
+    console.log('SSH tunnel opened between client and server.')
+    console.log(`Port ${this.config.clientSSHPort} on this client has been forwarded to port ${this.config.serverSSHPort} on the server.`)
+    this.cps.push(cp)
+
+    // Open HTTP tunnel for the liveness endpoint
+    cp = this.openTunnel(this.config.privKey, this.config.clientAlivenessPort, this.config.serverIp, this.config.serverUser, this.config.clientAlivenessPort)
+    console.log(`Liveness port ${this.config.clientAlivenessPort} has been port forwarded to server.`)
+    this.cps.push(cp)
+
+    // Open any additional ports specified in the config
+    if (this.config.clientAddPorts.length > 0) {
+      const clientAddPorts = this.config.clientAddPorts
+      const serverAddPorts = this.config.serverAddPorts
+
+      for (let i = 0; i < clientAddPorts.length; i++) {
+        cp = this.openTunnel(this.config.privKey, clientAddPorts[i], this.config.serverIp, this.config.serverUser, serverAddPorts[i])
+        console.log(`Additional port ${clientAddPorts[i]} has been port forwarded to server port ${serverAddPorts[i]}.`)
+        this.cps.push(cp)
+      }
     }
   }
 
@@ -93,6 +116,13 @@ class SSHTunnel {
     } catch (err) {
       console.error('Error in openTunnel()')
       throw err
+    }
+  }
+
+  // Close all tunnels
+  async closeAllTunnels () {
+    for (let i = 0; i < this.cps.length; i++) {
+      this.closeTunnel(this.cps[i])
     }
   }
 
