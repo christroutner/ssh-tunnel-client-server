@@ -1,0 +1,24 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 5
+    },
+    "auditLog": "/home/trout/work/personal/ssh-tunnel-client-server/client/logs/.24a2118e70f25940dc29013ff506bed444ccb369-audit.json",
+    "files": [
+        {
+            "date": 1660252900645,
+            "name": "/home/trout/work/personal/ssh-tunnel-client-server/client/logs/koa-dev-2022-08-11.log",
+            "hash": "e1fe29b0a45e1eadb0d5ffc04191ee23"
+        },
+        {
+            "date": 1660307563340,
+            "name": "/home/trout/work/personal/ssh-tunnel-client-server/client/logs/koa-dev-2022-08-12.log",
+            "hash": "4b198cf8311b37c3f481570b3c74289e"
+        },
+        {
+            "date": 1660402276640,
+            "name": "/home/trout/work/personal/ssh-tunnel-client-server/client/logs/koa-dev-2022-08-13.log",
+            "hash": "c9cb1a3d30cbddc36322a32538f109a7"
+        }
+    ]
+}

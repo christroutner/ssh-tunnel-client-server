@@ -7,6 +7,23 @@ This repository is a bit of a mono-repo:
  - The [client](./client) directory contains a REST API that sets up two or more SSH tunnels with the server. These tunnels are maintained through communication between the Client and the Server.
  - The [server](./server) directory also contains a REST API. This is expected to be run on a 'server' with a fixed IP4 address.
 
+By default these are the features:
+- The client forwards ports 22 and 4201 to the server.
+- The server presents the forwarded ports at 2222 and 4201.
+- The server polls port 4201 every 2 minutes to ensure the client is still alive and responsive.
+- The client polls port 4200 on the server, to see if in needs to reset its SSH tunnel.
+
+The bi-directional information between Client and Server ensure that the tunnels are renewed whenever it gets disconnected. Additional ports can be forwarded, it's not limited to just the two illustrated above.
+
+## Setup
+It is assumed this app is being run on an Ubuntu Linux server and client.
+
+By default, sshd on the server will only forward ports locally (127.0.0.1). It will not make the ports available to the public. If you want to make the port available to the public, you need to modify `/etc/ssh/sshd_config` file. Set the following config:
+- `GatewayPorts yes`
+
+This command can be used to see what ports on the server are listening and what inferfaces are exposed:
+- `sudo netstat -tulpn | grep LISTEN`
+
 ## Requirements
 * node __^14+__
 * npm __^8+__
