@@ -2,13 +2,15 @@
   Controller or the /contact REST API endpoints.
 */
 
-let _this
+// let _this
 
 class LivenessController {
-  constructor () {
-    _this = this
-  }
+  // constructor () {
+  //   // _this = this
+  // }
 
+  // This function simply returns 'true', in order to signal that the tunnel
+  // is still alive.
   // curl -H "Content-Type: application/json" -X GET localhost:4201/liveness/
   async handleLivenessQuery (ctx) {
     try {
@@ -19,49 +21,6 @@ class LivenessController {
     } catch (err) {
       console.error('Error in controller.js/handleLivenessQuery(): '.err)
       ctx.throw(422, err.message)
-    }
-  }
-
-  /**
-   * @api {post} /contact/email Send Email
-   * @apiName SendMail
-   * @apiGroup Contact
-   *
-   * @apiExample Example usage:
-   * curl -H "Content-Type: application/json" -X POST -d '{ "obj": { "email": "email@format.com", "formMessage": "a message" } }' localhost:5001/contact/email
-   *
-   * @apiParam {Object} obj           object (required)
-   * @apiParam {String} obj.email Sender Email.
-   * @apiParam {String} obj.formMessage Message.
-   *
-   * @apiSuccessExample {json} Success-Response:
-   *     HTTP/1.1 200 OK
-   *     {
-   *
-   *        success:true
-   *
-   *     }
-   *
-   * @apiError UnprocessableEntity Missing required parameters
-   *
-   * @apiErrorExample {json} Error-Response:
-   *     HTTP/1.1 422 Unprocessable Entity
-   *     {
-   *       "status": 422,
-   *       "error": "Unprocessable Entity"
-   *     }
-   */
-  async email (ctx) {
-    try {
-      const data = ctx.request.body
-      const emailObj = data.obj
-      await _this.contactLib.sendEmail(emailObj)
-
-      ctx.body = {
-        success: true
-      }
-    } catch (err) {
-      _this.handleError(ctx, err)
     }
   }
 
