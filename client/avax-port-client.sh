@@ -7,7 +7,7 @@
 
 # Client specific settings
 export PORT=4201
-export SSH_KEY=~/.ssh/fullstack
+export SSH_KEY=~/.ssh/mnd
 export CLIENT_SSH_PORT=22
 export CLIENT_ALIVE_PORT=4201
 
