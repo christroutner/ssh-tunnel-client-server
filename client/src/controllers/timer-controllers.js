@@ -26,7 +26,8 @@ class TimerControllers {
 
     // Library state
     this.state = {
-      exampleTime: 60000 * 2.5
+      exampleTime: 60000 * 2.5,
+      queryAvaxTime: 60000 * 10
     }
 
     _this = this
@@ -38,6 +39,30 @@ class TimerControllers {
   startTimers () {
     // this.state.exampleInterval = setInterval(this.exampleTimerController, this.state.exampleTime)
     setInterval(this.checkResetTimerController, this.state.exampleTime)
+    setInterval(this.queryAvaxNode, this.state.queryAvaxTime)
+  }
+
+  // Called by a timer interval. Queries the AVAX node and resets the tunnels
+  // if the node is not reachable.
+  async queryAvaxNode () {
+    try {
+      const result = await _this.adapters.avalanche.queryNodeId()
+
+      if (!result) {
+        console.log('Connection status reported false. Closing and reopening all forwarded ports.')
+
+        // Close all tunnels
+        _this.adapters.sshTunnel.closeAllTunnels()
+
+        await sleep(5000)
+
+        // Reopen all tunnels
+        _this.adapters.sshTunnel.openAllTunnels()
+      }
+    } catch (err) {
+      console.error('Error in queryAvaxNode(): ', err)
+      // This is a top-level function. Do not throw an error.
+    }
   }
 
   async checkResetTimerController () {

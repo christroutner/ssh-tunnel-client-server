@@ -11,6 +11,7 @@ const Passport = require('./passport')
 const Nodemailer = require('./nodemailer')
 const wlogger = require('./wlogger')
 const SSHTunnel = require('./ssh-tunnel')
+const AvalancheAdapter = require('./avalanche')
 
 const JSONFiles = require('./json-files')
 
@@ -27,6 +28,7 @@ class Adapters {
     this.config = config
     this.wlogger = wlogger
     this.sshTunnel = new SSHTunnel()
+    this.avalanche = new AvalancheAdapter()
   }
 
   // Startup any asynchronous processes needed to initialize the adapter libraries.
