@@ -19,10 +19,10 @@ const config = {
   clientAlivenessPort: process.env.CLIENT_ALIVE_PORT ? process.env.CLIENT_ALIVE_PORT : 4201,
 
   // SERVER SPECIFIC SETTINGS
-  serverIp: process.env.SERVER_IP ? process.env.SERVER_IP : '5.161.134.113',
+  serverIp: process.env.SERVER_IP ? process.env.SERVER_IP : '157.90.20.129',
   serverUser: process.env.SERVER_USER ? process.env.SERVER_USER : 'trout',
   // clientSSHPort gets forwarded to this port.
-  serverSSHPort: process.env.SERVER_SSH_PORT ? process.env.SERVER_SSH_PORT : 2222,
+  serverSSHPort: process.env.SERVER_SSH_PORT ? process.env.SERVER_SSH_PORT : 2227,
   // client polls this port to see if needs to renew the SSH tunnel.
   serverRestAPI: process.env.SERVER_RESET_CHECK_PORT ? process.env.SERVER_RESET_CHECK_PORT : 4200
 }
