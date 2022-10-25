@@ -11,7 +11,7 @@ const config = {
   emailPassword: process.env.EMAILPASS ? process.env.EMAILPASS : 'emailpassword',
 
   // Tunnel config settings for both client and server.
-  privKey: process.env.SSH_KEY ? process.env.SSH_KEY : '~/.ssh/fullstack',
+  privKey: process.env.SSH_KEY ? process.env.SSH_KEY : '~/.ssh/boat',
   renewalPeriod: 60000 * 2,
 
   // CLIENT SPECIFIC SETTINGS
