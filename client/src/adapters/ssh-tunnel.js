@@ -32,9 +32,9 @@ class SSHTunnel {
       this.reportRenewalTime()
 
       setInterval(async function () {
-        const resetNeeded = await _this.getStatus()
+        const connectionOk = await _this.getStatus()
 
-        if (resetNeeded) {
+        if (!connectionOk) {
           _this.closeAllTunnels()
 
           console.log('Renewing tunnel')
@@ -137,7 +137,8 @@ class SSHTunnel {
   }
 
   // Get the status from the API, to determine if this tunnel should be reset.
-  // Returns true or false.
+  // Returns true if connection is OK.
+  // Returns false if connection is not functional, and needs to be reset.
   async getStatus () {
     try {
       const statusUrl = `http://${this.config.serverIp}:${this.config.serverRestAPI}/tunnel`
