@@ -124,6 +124,9 @@ class SSHTunnel {
     for (let i = 0; i < this.cps.length; i++) {
       this.closeTunnel(this.cps[i])
     }
+
+    // Clear the array.
+    this.cps = []
   }
 
   closeTunnel (cp) {
