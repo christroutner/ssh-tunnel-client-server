@@ -10,6 +10,9 @@ const config = {
   emailUser: process.env.EMAILUSER ? process.env.EMAILUSER : 'noreply@someserver.com',
   emailPassword: process.env.EMAILPASS ? process.env.EMAILPASS : 'emailpassword',
 
+  // Enable or Disable the usage of Mongo DB.
+  noMongo: true,
+
   // Tunnel config settings for both client and server.
   privKey: process.env.SSH_KEY ? process.env.SSH_KEY : '~/.ssh/fullstack',
   renewalPeriod: 60000 * 2,

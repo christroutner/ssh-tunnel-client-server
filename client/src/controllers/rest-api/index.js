@@ -12,6 +12,7 @@ const UserRouter = require('./users')
 const ContactRESTController = require('./contact')
 const LogsRESTController = require('./logapi')
 const LivenessRESTController = require('./liveness')
+const config = require('../../../config')
 
 class RESTControllers {
   constructor (localConfig = {}) {
@@ -30,6 +31,9 @@ class RESTControllers {
       )
     }
 
+    // Encapsulate dependencies
+    this.config = config
+
     // console.log('Controllers localConfig: ', localConfig)
   }
 
@@ -39,13 +43,15 @@ class RESTControllers {
       useCases: this.useCases
     }
 
-    // Attach the REST API Controllers associated with the /auth route
-    const authRESTController = new AuthRESTController(dependencies)
-    authRESTController.attach(app)
+    if (!this.config.noMongo) {
+      // Attach the REST API Controllers associated with the /auth route
+      const authRESTController = new AuthRESTController(dependencies)
+      authRESTController.attach(app)
 
-    // Attach the REST API Controllers associated with the /user route
-    const userRouter = new UserRouter(dependencies)
-    userRouter.attach(app)
+      // Attach the REST API Controllers associated with the /user route
+      const userRouter = new UserRouter(dependencies)
+      userRouter.attach(app)
+    }
 
     // Attach the REST API Controllers associated with the /contact route
     const contactRESTController = new ContactRESTController(dependencies)
