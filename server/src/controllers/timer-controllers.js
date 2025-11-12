@@ -6,6 +6,9 @@
 // Global npm libraries
 const axios = require('axios')
 
+// Local libraries
+const config = require('../../../config/index.js')
+
 // Used to retain scope of 'this', when the scope is lost.
 let _this
 
@@ -52,7 +55,7 @@ class TimerControllers {
   // ssh tunnels.
   async checkClientLiveness () {
     try {
-      const result = await _this.axios.get('http://localhost:4201/liveness')
+      const result = await _this.axios.get(`http://localhost:${config.clientAlivenessPort}/liveness`)
       console.log('result.data: ', result.data)
 
       if (result.data.success) {
