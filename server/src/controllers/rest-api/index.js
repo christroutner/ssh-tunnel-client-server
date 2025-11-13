@@ -12,11 +12,13 @@ const UserRouter = require('./users')
 const ContactRESTController = require('./contact')
 const LogsRESTController = require('./logapi')
 const TunnelRESTController = require('./tunnel')
+const config = require('../../../config')
 
 class RESTControllers {
   constructor (localConfig = {}) {
     // Dependency Injection.
     this.adapters = localConfig.adapters
+    this.config = config
 
     if (!this.adapters) {
       throw new Error(
@@ -39,13 +41,15 @@ class RESTControllers {
       useCases: this.useCases
     }
 
-    // Attach the REST API Controllers associated with the /auth route
-    const authRESTController = new AuthRESTController(dependencies)
-    authRESTController.attach(app)
+    if(this.config.noMongo) {
+      // Attach the REST API Controllers associated with the /auth route
+      const authRESTController = new AuthRESTController(dependencies)
+      authRESTController.attach(app)
 
-    // Attach the REST API Controllers associated with the /user route
-    const userRouter = new UserRouter(dependencies)
-    userRouter.attach(app)
+      // Attach the REST API Controllers associated with the /user route
+      const userRouter = new UserRouter(dependencies)
+      userRouter.attach(app)
+    }
 
     // Attach the REST API Controllers associated with the /contact route
     const contactRESTController = new ContactRESTController(dependencies)

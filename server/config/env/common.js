@@ -10,6 +10,8 @@ const config = {
   emailUser: process.env.EMAILUSER ? process.env.EMAILUSER : 'noreply@someserver.com',
   emailPassword: process.env.EMAILPASS ? process.env.EMAILPASS : 'emailpassword',
 
+  noMongo: true,
+
   // Tunnel config settings for both client and server.
   renewalPeriod: 60000 * 2,
 
