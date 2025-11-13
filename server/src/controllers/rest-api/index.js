@@ -41,7 +41,7 @@ class RESTControllers {
       useCases: this.useCases
     }
 
-    if(this.config.noMongo) {
+    if (this.config.noMongo) {
       // Attach the REST API Controllers associated with the /auth route
       const authRESTController = new AuthRESTController(dependencies)
       authRESTController.attach(app)

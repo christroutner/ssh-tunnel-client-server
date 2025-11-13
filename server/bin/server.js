@@ -24,7 +24,7 @@ async function startServer () {
   const app = new Koa()
   app.keys = [config.session]
 
-  if(!config.noMongo) {
+  if (!config.noMongo) {
     // Connect to the Mongo Database.
     mongoose.Promise = global.Promise
     mongoose.set('useCreateIndex', true) // Stop deprecation warning.
@@ -71,12 +71,11 @@ async function startServer () {
   await app.listen(config.port)
   console.log(`Server started on ${config.port}`)
 
-  if(config.noMongo) {
+  if (config.noMongo) {
     // Create the system admin user.
     const success = await adminLib.createSystemUser()
-    if (success) console.log('System admin user created.')  
+    if (success) console.log('System admin user created.')
   }
-
 
   return app
 }
