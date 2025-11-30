@@ -66,7 +66,7 @@ echo "SSH daemon is listening on port 22 inside the container"
 
 # Start the Node.js application in the background so we can handle signals
 echo "Starting Node.js application..."
-npm start &
+npm run server &
 NODE_PID=$!
 
 # Wait for Node.js to start
