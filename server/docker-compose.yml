@@ -23,7 +23,7 @@ services:
       - CLIENT_ADD_PORTS=${CLIENT_ADD_PORTS}
       - SERVER_ADD_PORTS=${SERVER_ADD_PORTS}
     ports:
-      - "2222:22"      # SSH daemon (container:22 -> host:2222) - client connects here
+      #- "2222:22"      # SSH daemon (container:22 -> host:2222) - client connects here
       - "4200:4200"    # REST API
       # Note: Forwarded ports (2222, 4201, etc.) will be created by reverse SSH tunnel
       # and will be accessible on the host via the same port numbers

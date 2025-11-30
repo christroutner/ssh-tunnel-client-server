@@ -15,6 +15,12 @@ By default these are the features:
 
 The bi-directional information between Client and Server ensure that the tunnels are renewed whenever it gets disconnected. Additional ports can be forwarded, it's not limited to just the two illustrated above.
 
+This allows the operator of the server to enter the Docker container like this:
+- `docker exec -it ssh-tunnel-server bash`
+
+From there, they can open an SSH tunnel to the client like this:
+- `ssh <user>@localhost -p 2222`
+
 ## Security Architecture
 
 When the server runs in Docker (recommended), the SSH daemon runs inside the container. This ensures that:
