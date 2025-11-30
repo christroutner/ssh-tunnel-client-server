@@ -104,19 +104,49 @@ chmod 600 ssh-keys/authorized_keys
 mkdir -p keys logs
 ```
 
-5. Configure environment variables in `docker compose.yml` or create a `.env` file:
+5. Configure environment variables by copying and customizing the example `.env` file:
 
 ```bash
-# Example .env file
+# Copy the example .env file
+cp .env.example .env
+
+# Edit the .env file to customize settings
+nano .env  # or use your preferred editor
+```
+
+The `.env` file allows you to customize:
+- **CONTAINER_NAME**: Set a custom name for the Docker container (useful when running multiple instances on the same server)
+  - Example: `CONTAINER_NAME=ssh-tunnel-server-1`
+  - Default: `ssh-tunnel-server`
+- **PORT**: Server REST API port (default: 4200)
+- **SERVER_IP**: Your server's IP address
+- **SERVER_SSH_PORT**: Host port where container SSH is exposed (default: 2222)
+- **CLIENT_SSH_PORT**: Client SSH port (default: 22)
+- **CLIENT_ALIVE_PORT**: Client liveness check port (default: 4201)
+- **CLIENT_ADD_PORTS** / **SERVER_ADD_PORTS**: Additional ports to forward (comma-separated, optional)
+
+Example `.env` file:
+
+```bash
+# Container name - change this to run multiple instances
+CONTAINER_NAME=ssh-tunnel-server
+
+# Application Ports
 PORT=4200
-SERVER_IP=5.161.134.113
-SERVER_SSH_PORT=2222
-SERVER_RESET_CHECK_PORT=4200
 CLIENT_SSH_PORT=22
 CLIENT_ALIVE_PORT=4201
-CLIENT_ADD_PORTS=9650,9651
-SERVER_ADD_PORTS=9650,9651
+SERVER_SSH_PORT=2222
+SERVER_RESET_CHECK_PORT=4200
+
+# Server Configuration
+SERVER_IP=5.161.134.113
+
+# Additional Port Forwarding (optional)
+# CLIENT_ADD_PORTS=9650,9651
+# SERVER_ADD_PORTS=9650,9651
 ```
+
+**Note:** The `.env` file is automatically loaded by Docker Compose. You can also set these variables as environment variables before running `docker compose` commands.
 
 6. Build and start the container:
 
@@ -131,10 +161,18 @@ docker compose ps
 docker compose logs -f
 ```
 
+**Note:** If you customized the `CONTAINER_NAME` in your `.env` file, replace `ssh-tunnel-server` with your custom container name in the commands below.
+
 8. Check that sshd is running inside the container:
 
 ```bash
 docker compose exec ssh-tunnel-server ps aux | grep sshd
+```
+
+Or if using a custom container name:
+
+```bash
+docker compose exec <your-container-name> ps aux | grep sshd
 ```
 
 ### Testing the Server Setup
@@ -349,6 +387,7 @@ sudo netstat -tulpn | grep -E ':(22|2222|4200|4201)'
 
 ```bash
 # Check if sshd process exists
+# Replace 'ssh-tunnel-server' with your container name if you customized it
 docker compose exec ssh-tunnel-server ps aux | grep sshd
 
 # Check sshd logs
@@ -441,7 +480,7 @@ curl http://localhost:4201/liveness
 #### View server logs
 
 ```bash
-# Docker
+# Docker (replace 'ssh-tunnel-server' with your container name if customized)
 docker compose logs -f ssh-tunnel-server
 
 # Direct
