@@ -7,7 +7,11 @@ This repository is a bit of a mono-repo:
  - The [client](./client) directory contains a REST API that sets up two or more SSH tunnels with the server. These tunnels are maintained through communication between the Client and the Server.
  - The [server](./server) directory also contains a REST API. This is expected to be run on a 'server' with a fixed IP4 address.
 
-By default these are the features:
+This software is used for two reasons:
+- To create an SSH tunnel between a Client and Server. This allows a server administrator to open an SSH terminal to the client, for the purpose of remote adminstration. This software can open this SSH tunnel without the (non-technical) owner of the client needing to do setup or configure any special networking. These kinds of SSH tunnels must be *initiated* by the client.
+- To forward network ports from the Client to the Server. This allows the Client to offer *services* through the Server, without the Client having a fixed IP address.
+
+By default these are the features and ports used:
 - The client forwards ports 22 and 4201 to the server.
 - The server presents the forwarded ports at 2222 and 4201.
 - The server polls port 4201 every 2 minutes to ensure the client is still alive and responsive.
@@ -15,10 +19,10 @@ By default these are the features:
 
 The bi-directional information between Client and Server ensure that the tunnels are renewed whenever it gets disconnected. Additional ports can be forwarded, it's not limited to just the two illustrated above.
 
-This allows the operator of the server to enter the Docker container like this:
+This allows the operator of the Server to enter the Docker container like this:
 - `docker exec -it ssh-tunnel-server bash`
 
-From there, they can open an SSH tunnel to the client like this:
+From there, they can open an SSH tunnel to the Client like this:
 - `ssh <user>@localhost -p 2222`
 
 ## Security Architecture
@@ -33,12 +37,12 @@ When the server runs in Docker (recommended), the SSH daemon runs inside the con
 
 ### Server
 * Docker and Docker Compose (for containerized deployment)
-* OR Node.js ^14+ and npm ^8+ (for direct deployment)
+* OR Node.js ^20+ and npm ^10+
 * Ubuntu Linux (recommended)
 
 ### Client
-* Node.js ^14+
-* npm ^8+
+* Node.js ^20+
+* npm ^10+
 * SSH client
 * Ubuntu Linux (recommended)
 
@@ -52,23 +56,17 @@ When the server runs in Docker (recommended), the SSH daemon runs inside the con
 ssh-keygen -t ed25519 -f ~/.ssh/tunnel-client -N ""
 ```
 
-Or if you prefer RSA:
-
-```bash
-ssh-keygen -t rsa -b 4096 -f ~/.ssh/tunnel-client -N ""
-```
-
 2. This creates two files:
    - `~/.ssh/tunnel-client` - Private key (keep this secure, never share)
    - `~/.ssh/tunnel-client.pub` - Public key (this will be added to the server)
 
-3. Copy the public key to the server. You can display it with:
+3. Copy the public key to the server.
 
 ```bash
-cat ~/.ssh/tunnel-client.pub
+scp ~/.ssh/tunnel-client.pub <user>@<server ip>:/home/<user>/
 ```
 
-### On the Server Machine (For Server-to-Client Access)
+### On the Server Machine
 
 To enable the server to SSH into the client through the tunnel, you need to set up a server-to-client SSH key pair:
 
@@ -93,11 +91,7 @@ cd client
 ./add-server-key.sh ~/server-to-client.pub
 ```
 
-4. Finally, you can delete the file on the client
-- `rm ~/server-to-client.pub`
-
-
-## Server Setup (Docker - Recommended)
+## Server Setup
 
 ### Prerequisites
 
@@ -105,7 +99,7 @@ cd client
   - `curl -fsSL get.docker.com -o get-docker.sh && sh get-docker.sh`
   - `sudo usermod -aG docker ${USER}`
 2. Clone this repository on the server
-3. Ensure the server has a fixed IP address
+3. Ensure the server has a fixed IP4 address
 
 ### Initial Setup
 
@@ -126,7 +120,8 @@ chmod 700 ssh-keys
 
 ```bash
 # Option 1: Use the helper script
-./add-client-key.sh ~/path/to/tunnel-client.pub
+# This uses the public key file copied in an earlier step.
+./add-client-key.sh ~/tunnel-client.pub
 
 # Option 2: Manually
 echo "ssh-ed25519 AAAA..." >> ssh-keys/authorized_keys
@@ -173,7 +168,7 @@ CLIENT_ALIVE_PORT=4201
 SERVER_SSH_PORT=2222
 SERVER_RESET_CHECK_PORT=4200
 
-# Server Configuration
+# Server Configuration - Replace the IP address with your own server
 SERVER_IP=5.161.134.113
 
 # Additional Port Forwarding (optional)
@@ -186,7 +181,8 @@ SERVER_IP=5.161.134.113
 6. Build and start the container:
 
 ```bash
-docker compose up -d --build
+docker compose build
+docker compose up -d
 ```
 
 7. Verify the container is running:
@@ -234,54 +230,34 @@ hostname
 curl http://<server-ip>:4200/tunnel
 ```
 
-### Managing SSH Keys
-
-To add additional client keys:
-
-```bash
-cd server
-./add-client-key.sh <path-to-public-key>
-docker compose restart
-```
-
-Or use the interactive setup script:
-
-```bash
-cd server/production/docker/amd64
-./setup-ssh-keys.sh
-```
-
-## Server Setup (Direct - Non-Docker)
-
-If you prefer to run the server directly without Docker:
-
-1. Install Node.js and npm
-2. Install and configure OpenSSH server on the host
-3. Configure `/etc/ssh/sshd_config`:
-
-```
-GatewayPorts yes
-PermitRootLogin no
-PasswordAuthentication no
-PubkeyAuthentication yes
-AllowTcpForwarding yes
-```
-
-4. Add the client's public key to `~/.ssh/authorized_keys` for the tunnel user
-5. Restart sshd: `sudo systemctl restart sshd`
-6. Configure environment variables in `server/example_start.sh`
-7. Start the server: `npm run server`
-
-**Note:** Running directly on the host means clients will have access to the host system if they gain SSH access. Docker is recommended for security.
 
 ## Client Setup
 
 ### Prerequisites
 
-1. Node.js ^14+ and npm ^8+ installed
+1. Node.js ^20+ and npm ^10+ installed
 2. SSH key pair generated (see SSH Key Generation section above)
 3. Network access to the server
 4. **Server-to-client SSH key set up** (see "On the Server Machine" section above) - This allows the server to SSH into the client through the tunnel
+
+#### SSHD Configuration
+
+The Client requires its SSH daemon to have some non-default configuration changes.
+
+1. First of all, the client needs SSH daemon installed. This can be found in the *openssh-server* package:
+  - `sudo apt install openssh-server`
+
+2. Edit the configuration:
+  - `sudo nano /etc/ssh/sshd_config`
+
+3. Ensure the sshd_config file has the following settings:
+  - `PubkeyAuthentication yes`
+  - `GatewayPorts yes`
+
+4. Restart and configure SSH to start on reboot:
+  - `sudo systemctl restart ssh` - Reload the config file
+  - `sudo systemctl enable ssh` - Ensure SSH daemon starts after reboot
+
 
 ### Setup Steps
 
@@ -322,21 +298,17 @@ export SERVER_ADD_PORTS=9650,9651
 4. Make the start script executable:
 
 ```bash
-chmod +x example_start.sh
+chmod +x example_client_start.sh
 ```
 
 5. Start the client:
 
 ```bash
-./example_start.sh
+./example_client_start.sh
 ```
 
-Or directly:
+After verifying the SSH tunnel is established and being renewed reliably, the client software is usually managed by [PM2](https://www.npmjs.com/package/pm2) to ensure it is re-started after system reboots.
 
-```bash
-source example_start.sh
-npm run client
-```
 
 ### Verifying Client Connection
 
@@ -358,24 +330,6 @@ ssh -i ~/.ssh/server-to-client -p 2222 <client-username>@localhost
 
 **Note:** Replace `<client-username>` with the actual username on the client machine (e.g., `trout`).
 
-**Optional:** Add an SSH config entry on the server for convenience:
-
-```bash
-# On the server, edit ~/.ssh/config
-cat >> ~/.ssh/config << EOF
-Host client-tunnel
-    HostName localhost
-    Port 2222
-    User <client-username>
-    IdentityFile ~/.ssh/server-to-client
-    StrictHostKeyChecking no
-EOF
-```
-
-Then you can simply use:
-```bash
-ssh client-tunnel
-```
 
 3. Verify the liveness check is working (server should poll port 4201)
 
@@ -388,288 +342,37 @@ ssh client-tunnel
 - **Port 4200 (server)**: Server REST API
 - **Port 4201 (client)**: Client liveness/health check endpoint
 
-### Additional Ports
-
-You can forward additional ports by setting:
-
-```bash
-export CLIENT_ADD_PORTS=9650,9651,8080
-export SERVER_ADD_PORTS=9650,9651,8080
-```
-
-Each client port will be forwarded to the corresponding server port.
-
-## Security Considerations
-
-### Docker Deployment (Recommended)
-
-- **Client Isolation**: Clients connecting via SSH are jailed inside the Docker container
-- **Host Protection**: The server host remains protected from client access
-- **Admin Access**: Server administrators can still SSH to the host on port 22 (separate from container)
-- **Key-Based Auth**: Only SSH key authentication is allowed (no passwords)
-
-### Network Security
-
-- Ensure firewall rules allow:
-  - Port 2222 (SSH for clients)
-  - Port 4200 (REST API)
-  - Ports for forwarded services (2222, 4201, etc.)
-- Consider using a VPN or restricting access by IP
-- Regularly rotate SSH keys
-- Monitor SSH access logs
-
-### Best Practices
-
-1. Use strong SSH keys (ed25519 or RSA 4096-bit)
-2. Keep private keys secure (600 permissions)
-3. Regularly update Docker images and system packages
-4. Monitor container logs for suspicious activity
-5. Use read-only mounts for SSH keys when possible
-6. Implement key rotation policies
-
 ## Troubleshooting
 
-### Server Issues
+### Check Server App Is Available
 
-#### Container won't start
+From a terminal on the client, run this command:
 
-```bash
-# Check logs
-docker compose logs
+- `curl http://<server IP>:4200/tunnel`
 
-# Check if ports are already in use
-sudo netstat -tulpn | grep -E ':(22|2222|4200|4201)'
-```
+If that does not return a result (true or false), then it means the Client is not able to connect to the Server. Either the Server is not running the software or the Client is experiencing a networking issue.
 
-#### sshd not running in container
+### Check if Client liveness port is forwarded
 
-```bash
-# Check if sshd process exists
-# Replace 'ssh-tunnel-server' with your container name if you customized it
-docker compose exec ssh-tunnel-server ps aux | grep sshd
+Enter the Docker container on the Server:
 
-# Check sshd logs
-docker compose exec ssh-tunnel-server sudo tail -f /var/log/auth.log
+- `docker exec -it <container name> exec`
 
-# Restart the container
-docker compose restart
-```
+Check if the liveness endpoint on the Client has been successfully port forwarded to the Server:
 
-#### Client can't connect via SSH
+- `curl http://localhost:4201/liveness`
 
-1. Verify the public key is in `ssh-keys/authorized_keys`
-2. Check key permissions (should be 600)
-3. Verify the container is exposing port 2222:
+If the endpoint does not return a result (true or false), then it means the Client is not able to forward its liveness port
 
-```bash
-docker compose ps
-# Should show 0.0.0.0:2222->22/tcp
-```
+### Check if Client can SSH into Server
 
-4. Test SSH connection with verbose output:
+From the Client terminal, try to connect to the Docker container on the Server:
 
-```bash
-ssh -v -p 2222 -i ~/.ssh/tunnel-client safeuser@<server-ip>
-```
+- `ssh -p 2222 -i ~/.ssh/tunnel-client safeuser@<server IP>`
 
-5. Check firewall rules on the server
+If you can not open a terminal, the SSH port was not successfully forwarded. This test will also alert you to issues with the SSH identities, which will change and cause a connection issue when the Docker container is rebuilt.
 
-#### Port forwarding not working
 
-1. Verify `GatewayPorts yes` is set in container's sshd_config:
-
-```bash
-docker compose exec ssh-tunnel-server sudo grep GatewayPorts /etc/ssh/sshd_config
-```
-
-2. Check if the forwarded port is listening:
-
-```bash
-# Inside the container
-docker compose exec ssh-tunnel-server sudo netstat -tulpn | grep LISTEN
-```
-
-3. Verify the reverse tunnel is established (check client logs)
-
-### Client Issues
-
-#### Tunnel connection fails
-
-1. Verify SSH key path is correct in `example_start.sh`
-2. Check key permissions (should be 600):
-
-```bash
-chmod 600 ~/.ssh/tunnel-client
-```
-
-3. Test SSH connection manually:
-
-```bash
-ssh -p 2222 -i ~/.ssh/tunnel-client safeuser@<server-ip>
-```
-
-4. Check server IP and port are correct
-5. Verify network connectivity:
-
-```bash
-telnet <server-ip> 2222
-```
-
-#### Liveness check failing
-
-1. Verify the client REST API is running on port 4201
-2. Check if the liveness endpoint is accessible locally:
-
-```bash
-curl http://localhost:4201/liveness
-```
-
-3. Verify the port forwarding is working (check server logs)
-
-#### Tunnel keeps disconnecting
-
-1. Check network stability
-2. Verify `ServerAliveInterval` is set in SSH config
-3. Check server and client logs for errors
-4. Verify the renewal mechanism is working
-
-#### Cannot SSH from server to client through tunnel
-
-If you get "Permission denied (publickey)" when trying to SSH from server to client:
-
-**Quick Diagnostic:**
-Run the debug script on the client:
-```bash
-# On the client
-./debug-ssh-connection.sh
-```
-
-**Step-by-step troubleshooting:**
-
-1. **Verify the server's public key is in the client's authorized_keys:**
-   ```bash
-   # On the client
-   cat ~/.ssh/authorized_keys | grep server-to-client
-   ```
-   
-   If the key is missing, add it:
-   ```bash
-   # On the server, get the public key:
-   cat ~/.ssh/server-to-client.pub
-   
-   # On the client, save it to a file and add it:
-   # (paste the output from server into ~/server-to-client.pub)
-   ./client/add-server-key.sh ~/server-to-client.pub
-   ```
-
-2. **Check key permissions on the client:**
-   ```bash
-   # On the client
-   chmod 700 ~/.ssh
-   chmod 600 ~/.ssh/authorized_keys
-   ```
-
-3. **Verify the client's SSH daemon is running and configured correctly:**
-   ```bash
-   # On the client
-   sudo systemctl status ssh
-   # or
-   sudo systemctl status sshd
-   
-   # Check PubkeyAuthentication is enabled:
-   sudo grep "^PubkeyAuthentication" /etc/ssh/sshd_config
-   # Should show: PubkeyAuthentication yes
-   
-   # If not enabled, edit /etc/ssh/sshd_config and set:
-   # PubkeyAuthentication yes
-   # Then restart: sudo systemctl restart ssh
-   ```
-
-4. **Check SSH authentication logs on the client:**
-   ```bash
-   # On the client
-   sudo tail -f /var/log/auth.log | grep sshd
-   # or on some systems:
-   sudo tail -f /var/log/secure | grep sshd
-   ```
-   
-   Try connecting from the server and watch for error messages.
-
-5. **Verify you're using the correct private key on the server:**
-   ```bash
-   # On the server, verify the key exists and has correct permissions:
-   ls -la ~/.ssh/server-to-client
-   # Should show: -rw------- (600 permissions)
-   
-   # Test the connection:
-   ssh -i ~/.ssh/server-to-client -p 2222 <client-username>@localhost
-   ```
-
-6. **Test with verbose SSH output to see what's happening:**
-   ```bash
-   # On the server
-   ssh -vvv -i ~/.ssh/server-to-client -p 2222 <client-username>@localhost
-   ```
-   
-   Look for lines like:
-   - `Offering public key` - shows the key is being offered
-   - `Authentications that can continue: publickey` - shows key auth failed
-   - `Permission denied` - authentication failed
-
-7. **Verify the reverse tunnel is established:**
-   ```bash
-   # On the server, check if port 2222 is listening (for reverse tunnel):
-   sudo netstat -tulpn | grep 2222
-   # or
-   sudo ss -tulpn | grep 2222
-   
-   # You should see something listening on 2222
-   # Note: The reverse tunnel port 2222 is different from the SSH daemon port mapping
-   ```
-
-**Common Issues:**
-- **Key not in authorized_keys**: Most common issue. Make sure you've run `./client/add-server-key.sh` on the client.
-- **Wrong permissions**: `~/.ssh` must be 700, `authorized_keys` must be 600.
-- **SSH daemon not configured**: `PubkeyAuthentication yes` must be set in `/etc/ssh/sshd_config`.
-- **Wrong username**: Make sure you're using the correct client username (e.g., `trout`, not `safeuser`).
-
-### General Debugging
-
-#### View server logs
-
-```bash
-# Docker (replace 'ssh-tunnel-server' with your container name if customized)
-docker compose logs -f ssh-tunnel-server
-
-# Direct
-tail -f server/logs/*.log
-```
-
-#### View client logs
-
-```bash
-tail -f client/logs/*.log
-```
-
-#### Test REST API endpoints
-
-```bash
-# Server tunnel status
-curl http://<server-ip>:4200/tunnel
-
-# Client liveness (from server, via forwarded port)
-curl http://localhost:4201/liveness
-```
-
-#### Check port status
-
-```bash
-# On server
-sudo netstat -tulpn | grep LISTEN
-
-# Inside container
-docker compose exec ssh-tunnel-server sudo netstat -tulpn | grep LISTEN
-```
 
 ## Architecture Details
 
