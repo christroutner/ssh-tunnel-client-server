@@ -13,7 +13,7 @@ if [ $# -eq 0 ]; then
 fi
 
 KEYFILE="$1"
-SSH_DIR="./ssh-keys"
+SSH_DIR="$HOME/.ssh"
 AUTHORIZED_KEYS="$SSH_DIR/authorized_keys"
 
 # Validate key file exists
@@ -31,7 +31,7 @@ fi
 
 # Create SSH directory if needed
 if [ ! -d "$SSH_DIR" ]; then
-    echo "Creating SSH keys directory: $SSH_DIR"
+    echo "Creating SSH directory: $SSH_DIR"
     mkdir -p "$SSH_DIR"
     chmod 700 "$SSH_DIR"
 fi
