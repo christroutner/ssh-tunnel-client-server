@@ -1,22 +1,19 @@
 #!/bin/bash
 
-# Add server's public key to client's authorized_keys
-# This allows the server to SSH into the client through the tunnel
-# Usage: ./add-server-key.sh <path-to-public-key-file> [client-username]
+# Quick script to add a server's public key to authorized_keys
+# Usage: ./add-server-key.sh <path-to-public-key-file>
 
 set -e
 
 if [ $# -eq 0 ]; then
-    echo "Usage: $0 <path-to-public-key-file> [client-username]"
+    echo "Usage: $0 <path-to-public-key-file>"
     echo ""
     echo "Example: $0 ~/server-to-client.pub"
-    echo "Example: $0 ~/server-to-client.pub trout"
     exit 1
 fi
 
 KEYFILE="$1"
-CLIENT_USER="${2:-$USER}"
-SSH_DIR="$HOME/.ssh"
+SSH_DIR="./ssh-keys"
 AUTHORIZED_KEYS="$SSH_DIR/authorized_keys"
 
 # Validate key file exists
@@ -34,7 +31,7 @@ fi
 
 # Create SSH directory if needed
 if [ ! -d "$SSH_DIR" ]; then
-    echo "Creating SSH directory: $SSH_DIR"
+    echo "Creating SSH keys directory: $SSH_DIR"
     mkdir -p "$SSH_DIR"
     chmod 700 "$SSH_DIR"
 fi
@@ -47,8 +44,7 @@ if [ ! -f "$AUTHORIZED_KEYS" ]; then
 fi
 
 # Check if key already exists
-KEY_CONTENT=$(cat "$KEYFILE")
-if grep -qF "$KEY_CONTENT" "$AUTHORIZED_KEYS" 2>/dev/null; then
+if grep -qF "$(cat "$KEYFILE")" "$AUTHORIZED_KEYS" 2>/dev/null; then
     echo "Warning: This key already exists in authorized_keys"
     read -p "Add it anyway? (y/N): " confirm
     if [ "$confirm" != "y" ] && [ "$confirm" != "Y" ]; then
@@ -59,16 +55,11 @@ fi
 
 # Add key
 echo "" >> "$AUTHORIZED_KEYS"
-echo "# Server-to-client key added $(date) from $KEYFILE" >> "$AUTHORIZED_KEYS"
+echo "# Added $(date) from $KEYFILE" >> "$AUTHORIZED_KEYS"
 cat "$KEYFILE" >> "$AUTHORIZED_KEYS"
-
-# Ensure correct permissions
-chmod 600 "$AUTHORIZED_KEYS"
 
 echo "Key added successfully to $AUTHORIZED_KEYS"
 echo ""
 echo "Next steps:"
-echo "1. Ensure the client tunnel is running"
-echo "2. Test connection from server:"
-echo "   ssh -i <server-private-key> -p 2222 $CLIENT_USER@localhost"
-echo ""
+echo "1. Restart the Docker container if it's running"
+echo "2. Test connection: ssh -p 2222 -i <private-key> safeuser@<client-ip>"
