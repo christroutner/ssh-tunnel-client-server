@@ -233,7 +233,7 @@ curl http://<server-ip>:4200/tunnel
 To add additional client keys:
 
 ```bash
-cd server/production/docker/amd64
+cd server
 ./add-client-key.sh <path-to-public-key>
 docker compose restart
 ```

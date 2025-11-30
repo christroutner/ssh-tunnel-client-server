@@ -63,4 +63,3 @@ echo ""
 echo "Next steps:"
 echo "1. Restart the Docker container if it's running"
 echo "2. Test connection: ssh -p 2222 -i <private-key> safeuser@<server-ip>"
-
