@@ -12,11 +12,13 @@ const UserRouter = require('./users')
 const ContactRESTController = require('./contact')
 const LogsRESTController = require('./logapi')
 const TunnelRESTController = require('./tunnel')
+const config = require('../../../config')
 
 class RESTControllers {
   constructor (localConfig = {}) {
     // Dependency Injection.
     this.adapters = localConfig.adapters
+    this.config = config
 
     if (!this.adapters) {
       throw new Error(

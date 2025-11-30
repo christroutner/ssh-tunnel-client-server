@@ -7,7 +7,7 @@
 const axios = require('axios')
 
 // Local libraries
-const config = require('../../config')
+const config = require('../../config/index.js')
 
 // Used to retain scope of 'this', when the scope is lost.
 let _this
