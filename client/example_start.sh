@@ -14,7 +14,7 @@
 export PORT=4200
 
 # Client specific settings
-export SSH_KEY=~/.ssh/fullstack
+export SSH_KEY=~/.ssh/tunnel-client
 export CLIENT_SSH_PORT=22
 export CLIENT_ALIVE_PORT=4201
 

@@ -62,17 +62,13 @@ ssh-keygen -t rsa -b 4096 -f ~/.ssh/tunnel-client -N ""
 cat ~/.ssh/tunnel-client.pub
 ```
 
-4. Update your client's `example_start.sh` to use this key:
-
-```bash
-export SSH_KEY=~/.ssh/tunnel-client
-```
-
 ## Server Setup (Docker - Recommended)
 
 ### Prerequisites
 
 1. Install Docker and Docker Compose on the server
+  - `curl -fsSL get.docker.com -o get-docker.sh && sh get-docker.sh`
+  - `sudo usermod -aG docker ${USER}`
 2. Clone this repository on the server
 3. Ensure the server has a fixed IP address
 
@@ -84,7 +80,7 @@ export SSH_KEY=~/.ssh/tunnel-client
 cd server
 ```
 
-2. Create the SSH keys directory:
+2. Create the SSH keys directory in the same directory as the `docker compose.yml` file:
 
 ```bash
 mkdir -p ssh-keys
@@ -95,21 +91,20 @@ chmod 700 ssh-keys
 
 ```bash
 # Option 1: Use the helper script
-cd production/docker/amd64
 ./add-client-key.sh ~/path/to/tunnel-client.pub
 
 # Option 2: Manually
-echo "ssh-ed25519 AAAA..." >> ../ssh-keys/authorized_keys
-chmod 600 ../ssh-keys/authorized_keys
+echo "ssh-ed25519 AAAA..." >> ssh-keys/authorized_keys
+chmod 600 ssh-keys/authorized_keys
 ```
 
-4. Create necessary directories:
+4. Create necessary directories in the same directory as the `docker compose.yml` file:
 
 ```bash
 mkdir -p keys logs
 ```
 
-5. Configure environment variables in `docker-compose.yml` or create a `.env` file:
+5. Configure environment variables in `docker compose.yml` or create a `.env` file:
 
 ```bash
 # Example .env file
@@ -126,20 +121,20 @@ SERVER_ADD_PORTS=9650,9651
 6. Build and start the container:
 
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 7. Verify the container is running:
 
 ```bash
-docker-compose ps
-docker-compose logs -f
+docker compose ps
+docker compose logs -f
 ```
 
 8. Check that sshd is running inside the container:
 
 ```bash
-docker-compose exec ssh-tunnel-server ps aux | grep sshd
+docker compose exec ssh-tunnel-server ps aux | grep sshd
 ```
 
 ### Testing the Server Setup
@@ -173,7 +168,7 @@ To add additional client keys:
 ```bash
 cd server/production/docker/amd64
 ./add-client-key.sh <path-to-public-key>
-docker-compose restart
+docker compose restart
 ```
 
 Or use the interactive setup script:
@@ -344,7 +339,7 @@ Each client port will be forwarded to the corresponding server port.
 
 ```bash
 # Check logs
-docker-compose logs
+docker compose logs
 
 # Check if ports are already in use
 sudo netstat -tulpn | grep -E ':(22|2222|4200|4201)'
@@ -354,13 +349,13 @@ sudo netstat -tulpn | grep -E ':(22|2222|4200|4201)'
 
 ```bash
 # Check if sshd process exists
-docker-compose exec ssh-tunnel-server ps aux | grep sshd
+docker compose exec ssh-tunnel-server ps aux | grep sshd
 
 # Check sshd logs
-docker-compose exec ssh-tunnel-server sudo tail -f /var/log/auth.log
+docker compose exec ssh-tunnel-server sudo tail -f /var/log/auth.log
 
 # Restart the container
-docker-compose restart
+docker compose restart
 ```
 
 #### Client can't connect via SSH
@@ -370,7 +365,7 @@ docker-compose restart
 3. Verify the container is exposing port 2222:
 
 ```bash
-docker-compose ps
+docker compose ps
 # Should show 0.0.0.0:2222->22/tcp
 ```
 
@@ -387,14 +382,14 @@ ssh -v -p 2222 -i ~/.ssh/tunnel-client safeuser@<server-ip>
 1. Verify `GatewayPorts yes` is set in container's sshd_config:
 
 ```bash
-docker-compose exec ssh-tunnel-server sudo grep GatewayPorts /etc/ssh/sshd_config
+docker compose exec ssh-tunnel-server sudo grep GatewayPorts /etc/ssh/sshd_config
 ```
 
 2. Check if the forwarded port is listening:
 
 ```bash
 # Inside the container
-docker-compose exec ssh-tunnel-server sudo netstat -tulpn | grep LISTEN
+docker compose exec ssh-tunnel-server sudo netstat -tulpn | grep LISTEN
 ```
 
 3. Verify the reverse tunnel is established (check client logs)
@@ -447,7 +442,7 @@ curl http://localhost:4201/liveness
 
 ```bash
 # Docker
-docker-compose logs -f ssh-tunnel-server
+docker compose logs -f ssh-tunnel-server
 
 # Direct
 tail -f server/logs/*.log
@@ -476,7 +471,7 @@ curl http://localhost:4201/liveness
 sudo netstat -tulpn | grep LISTEN
 
 # Inside container
-docker-compose exec ssh-tunnel-server sudo netstat -tulpn | grep LISTEN
+docker compose exec ssh-tunnel-server sudo netstat -tulpn | grep LISTEN
 ```
 
 ## Architecture Details

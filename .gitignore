@@ -68,4 +68,6 @@ system-user-*.json
 
 !README.md
 
+ssh-keys/
+.env
 
