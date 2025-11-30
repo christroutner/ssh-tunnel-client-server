@@ -62,6 +62,43 @@ ssh-keygen -t rsa -b 4096 -f ~/.ssh/tunnel-client -N ""
 cat ~/.ssh/tunnel-client.pub
 ```
 
+### On the Server Machine (For Server-to-Client Access)
+
+To enable the server to SSH into the client through the tunnel, you need to set up a server-to-client SSH key pair:
+
+1. **On the server**, generate an SSH key pair:
+
+```bash
+cd server
+./generate-server-key.sh
+```
+
+This creates:
+   - `~/.ssh/server-to-client` - Private key (keep this secure)
+   - `~/.ssh/server-to-client.pub` - Public key (this will be added to the client)
+
+2. **Copy the public key to the client**. The script will display the public key. Copy it, then:
+
+3. **On the client**, add the server's public key to authorized_keys:
+
+```bash
+cd client
+./add-server-key.sh <path-to-server-public-key>
+```
+
+For example, if you copied the public key to `~/server-to-client.pub` on the client:
+
+```bash
+./add-server-key.sh ~/server-to-client.pub
+```
+
+**Alternative:** If you already have an SSH key on the server (e.g., `~/.ssh/id_ed25519.pub`), you can use that instead:
+
+```bash
+# On client
+./add-server-key.sh ~/id_ed25519.pub
+```
+
 ## Server Setup (Docker - Recommended)
 
 ### Prerequisites
@@ -246,6 +283,7 @@ AllowTcpForwarding yes
 1. Node.js ^14+ and npm ^8+ installed
 2. SSH key pair generated (see SSH Key Generation section above)
 3. Network access to the server
+4. **Server-to-client SSH key set up** (see "On the Server Machine" section above) - This allows the server to SSH into the client through the tunnel
 
 ### Setup Steps
 
@@ -275,6 +313,7 @@ export CLIENT_ALIVE_PORT=4201
 # Server specific settings
 export SERVER_IP=5.161.134.113  # Replace with your server's IP
 export SERVER_SSH_PORT=2222     # Host port where container SSH is exposed
+export SERVER_USER=safeuser     # Username on server (use 'safeuser' for Docker setup, or your username for direct/non-Docker setup)
 export SERVER_RESET_CHECK_PORT=4200
 
 # Additional ports to forward (optional)
@@ -311,12 +350,33 @@ Port 22 on this client has been forwarded to port 2222 on the server.
 Liveness port 4201 has been port forwarded to server.
 ```
 
-2. Test the tunnel by connecting to the forwarded port from the server:
+2. Test the tunnel by connecting to the client from the server:
 
 ```bash
-# On the server (or from another machine)
-ssh -p 2222 user@<server-ip>
+# On the server, SSH to the client through the tunnel
+ssh -i ~/.ssh/server-to-client -p 2222 <client-username>@localhost
 # This should connect you to the client machine
+```
+
+**Note:** Replace `<client-username>` with the actual username on the client machine (e.g., `trout`).
+
+**Optional:** Add an SSH config entry on the server for convenience:
+
+```bash
+# On the server, edit ~/.ssh/config
+cat >> ~/.ssh/config << EOF
+Host client-tunnel
+    HostName localhost
+    Port 2222
+    User <client-username>
+    IdentityFile ~/.ssh/server-to-client
+    StrictHostKeyChecking no
+EOF
+```
+
+Then you can simply use:
+```bash
+ssh client-tunnel
 ```
 
 3. Verify the liveness check is working (server should poll port 4201)
@@ -474,6 +534,42 @@ curl http://localhost:4201/liveness
 2. Verify `ServerAliveInterval` is set in SSH config
 3. Check server and client logs for errors
 4. Verify the renewal mechanism is working
+
+#### Cannot SSH from server to client through tunnel
+
+If you get "Permission denied (publickey)" when trying to SSH from server to client:
+
+1. **Verify the server's public key is in the client's authorized_keys:**
+   ```bash
+   # On the client
+   cat ~/.ssh/authorized_keys | grep server-to-client
+   ```
+
+2. **Check key permissions on the client:**
+   ```bash
+   # On the client
+   chmod 700 ~/.ssh
+   chmod 600 ~/.ssh/authorized_keys
+   ```
+
+3. **Verify you're using the correct private key on the server:**
+   ```bash
+   # On the server
+   ssh -i ~/.ssh/server-to-client -p 2222 <client-username>@localhost
+   ```
+
+4. **Check the client's SSH daemon is running and configured correctly:**
+   ```bash
+   # On the client
+   sudo systemctl status ssh
+   # Ensure PubkeyAuthentication yes in /etc/ssh/sshd_config
+   ```
+
+5. **Test with verbose SSH output to see what's happening:**
+   ```bash
+   # On the server
+   ssh -v -i ~/.ssh/server-to-client -p 2222 <client-username>@localhost
+   ```
 
 ### General Debugging
 

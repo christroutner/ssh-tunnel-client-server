@@ -21,6 +21,7 @@ export CLIENT_ALIVE_PORT=4201
 # Server specific settings
 export SERVER_IP=5.161.134.113
 export SERVER_SSH_PORT=2222
+export SERVER_USER=safeuser  # Username on server (use 'safeuser' for Docker, or your username for direct setup)
 export SERVER_RESET_CHECK_PORT=4200
 
 # Customized specific for this application
