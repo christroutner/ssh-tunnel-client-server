@@ -1,5 +1,10 @@
 # Docker Compose configuration for SSH Tunnel Server
 # Start with: docker-compose up -d
+#
+# To customize the container name, create a .env file in this directory with:
+#   CONTAINER_NAME=your-container-name
+# Or set it as an environment variable: export CONTAINER_NAME=your-container-name
+# This allows running multiple instances on the same server.
 
 version: '3.9'
 
@@ -8,7 +13,7 @@ services:
     build:
       context: ..  # Build from repository root (server/.. = repo root)
       dockerfile: server/production/docker/amd64/Dockerfile
-    container_name: ssh-tunnel-server
+    container_name: ${CONTAINER_NAME:-ssh-tunnel-server}
     environment:
       - KOA_ENV=production
       - PORT=${PORT:-4200}
