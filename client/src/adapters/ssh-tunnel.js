@@ -5,6 +5,8 @@
 // Global npm libraries
 const spawn = require('child_process').spawn
 const axios = require('axios')
+const path = require('path')
+const os = require('os')
 
 // Local libraries
 const config = require('../../config')
@@ -98,10 +100,20 @@ class SSHTunnel {
   // to the 'remotePort'.
   openTunnel (sshKey, localPort, remoteIp, username, remotePort) {
     try {
+      // Expand ~ in the SSH key path
+      let expandedKeyPath = sshKey
+      if (sshKey.startsWith('~/')) {
+        expandedKeyPath = path.join(os.homedir(), sshKey.slice(2))
+      } else if (sshKey === '~') {
+        expandedKeyPath = os.homedir()
+      }
+
       // Set up a tunnel for SSH access to the Dell machine.
       const cp = spawn('ssh', [
         '-i',
-        `${sshKey}`,
+        expandedKeyPath,
+        '-p',
+        `${this.config.serverSSHPort}`,
         '-R',
         `${remotePort}:localhost:${localPort}`,
         '-o',
