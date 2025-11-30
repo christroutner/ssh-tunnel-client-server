@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Update the OS and install packages
 RUN apt-get update && \
-    apt-get install -y sudo git curl nano gnupg wget openssh-server && \
+    apt-get install -y sudo git curl nano gnupg wget openssh-server net-tools && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
