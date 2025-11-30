@@ -77,27 +77,19 @@ This creates:
    - `~/.ssh/server-to-client` - Private key (keep this secure)
    - `~/.ssh/server-to-client.pub` - Public key (this will be added to the client)
 
-2. **Copy the public key to the client**. The script will display the public key. Copy it, then:
+2. **Copy the public key to the client**. Display the public key with this command. Then paste it to the client in a file called ~/server-to-client.pub:
+   - `cat ~/.ssh/server-to-client.pub`
 
 3. **On the client**, add the server's public key to authorized_keys:
 
 ```bash
 cd client
-./add-server-key.sh <path-to-server-public-key>
-```
-
-For example, if you copied the public key to `~/server-to-client.pub` on the client:
-
-```bash
 ./add-server-key.sh ~/server-to-client.pub
 ```
 
-**Alternative:** If you already have an SSH key on the server (e.g., `~/.ssh/id_ed25519.pub`), you can use that instead:
+4. Finally, you can delete the file on the client
+- `rm ~/server-to-client.pub`
 
-```bash
-# On client
-./add-server-key.sh ~/id_ed25519.pub
-```
 
 ## Server Setup (Docker - Recommended)
 
