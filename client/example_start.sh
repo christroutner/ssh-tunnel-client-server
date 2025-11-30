@@ -25,7 +25,7 @@ export SERVER_USER=safeuser  # Username on server (use 'safeuser' for Docker, or
 export SERVER_RESET_CHECK_PORT=4200
 
 # Customized specific for this application
-export CLIENT_ADD_PORTS=9650,9651
-export SERVER_ADD_PORTS=9650,9651
+#export CLIENT_ADD_PORTS=9650,9651
+#export SERVER_ADD_PORTS=9650,9651
 
 npm run client

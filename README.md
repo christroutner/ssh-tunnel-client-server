@@ -109,7 +109,7 @@ cd client
 cd server
 ```
 
-2. Create the SSH keys directory in the same directory as the `docker compose.yml` file:
+2. Create the SSH keys directory in the same directory as the `docker-compose.yml` file:
 
 ```bash
 mkdir -p ssh-keys
@@ -127,7 +127,7 @@ echo "ssh-ed25519 AAAA..." >> ssh-keys/authorized_keys
 chmod 600 ssh-keys/authorized_keys
 ```
 
-4. Create necessary directories in the same directory as the `docker compose.yml` file:
+4. Create necessary directories in the same directory as the `docker-compose.yml` file:
 
 ```bash
 mkdir -p keys logs
@@ -531,10 +531,29 @@ curl http://localhost:4201/liveness
 
 If you get "Permission denied (publickey)" when trying to SSH from server to client:
 
+**Quick Diagnostic:**
+Run the debug script on the client:
+```bash
+# On the client
+./debug-ssh-connection.sh
+```
+
+**Step-by-step troubleshooting:**
+
 1. **Verify the server's public key is in the client's authorized_keys:**
    ```bash
    # On the client
    cat ~/.ssh/authorized_keys | grep server-to-client
+   ```
+   
+   If the key is missing, add it:
+   ```bash
+   # On the server, get the public key:
+   cat ~/.ssh/server-to-client.pub
+   
+   # On the client, save it to a file and add it:
+   # (paste the output from server into ~/server-to-client.pub)
+   ./client/add-server-key.sh ~/server-to-client.pub
    ```
 
 2. **Check key permissions on the client:**
@@ -544,24 +563,69 @@ If you get "Permission denied (publickey)" when trying to SSH from server to cli
    chmod 600 ~/.ssh/authorized_keys
    ```
 
-3. **Verify you're using the correct private key on the server:**
-   ```bash
-   # On the server
-   ssh -i ~/.ssh/server-to-client -p 2222 <client-username>@localhost
-   ```
-
-4. **Check the client's SSH daemon is running and configured correctly:**
+3. **Verify the client's SSH daemon is running and configured correctly:**
    ```bash
    # On the client
    sudo systemctl status ssh
-   # Ensure PubkeyAuthentication yes in /etc/ssh/sshd_config
+   # or
+   sudo systemctl status sshd
+   
+   # Check PubkeyAuthentication is enabled:
+   sudo grep "^PubkeyAuthentication" /etc/ssh/sshd_config
+   # Should show: PubkeyAuthentication yes
+   
+   # If not enabled, edit /etc/ssh/sshd_config and set:
+   # PubkeyAuthentication yes
+   # Then restart: sudo systemctl restart ssh
    ```
 
-5. **Test with verbose SSH output to see what's happening:**
+4. **Check SSH authentication logs on the client:**
+   ```bash
+   # On the client
+   sudo tail -f /var/log/auth.log | grep sshd
+   # or on some systems:
+   sudo tail -f /var/log/secure | grep sshd
+   ```
+   
+   Try connecting from the server and watch for error messages.
+
+5. **Verify you're using the correct private key on the server:**
+   ```bash
+   # On the server, verify the key exists and has correct permissions:
+   ls -la ~/.ssh/server-to-client
+   # Should show: -rw------- (600 permissions)
+   
+   # Test the connection:
+   ssh -i ~/.ssh/server-to-client -p 2222 <client-username>@localhost
+   ```
+
+6. **Test with verbose SSH output to see what's happening:**
    ```bash
    # On the server
-   ssh -v -i ~/.ssh/server-to-client -p 2222 <client-username>@localhost
+   ssh -vvv -i ~/.ssh/server-to-client -p 2222 <client-username>@localhost
    ```
+   
+   Look for lines like:
+   - `Offering public key` - shows the key is being offered
+   - `Authentications that can continue: publickey` - shows key auth failed
+   - `Permission denied` - authentication failed
+
+7. **Verify the reverse tunnel is established:**
+   ```bash
+   # On the server, check if port 2222 is listening (for reverse tunnel):
+   sudo netstat -tulpn | grep 2222
+   # or
+   sudo ss -tulpn | grep 2222
+   
+   # You should see something listening on 2222
+   # Note: The reverse tunnel port 2222 is different from the SSH daemon port mapping
+   ```
+
+**Common Issues:**
+- **Key not in authorized_keys**: Most common issue. Make sure you've run `./client/add-server-key.sh` on the client.
+- **Wrong permissions**: `~/.ssh` must be 700, `authorized_keys` must be 600.
+- **SSH daemon not configured**: `PubkeyAuthentication yes` must be set in `/etc/ssh/sshd_config`.
+- **Wrong username**: Make sure you're using the correct client username (e.g., `trout`, not `safeuser`).
 
 ### General Debugging
 

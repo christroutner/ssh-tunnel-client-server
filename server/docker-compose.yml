@@ -6,8 +6,6 @@
 # Or set it as an environment variable: export CONTAINER_NAME=your-container-name
 # This allows running multiple instances on the same server.
 
-version: '3.9'
-
 services:
   ssh-tunnel-server:
     build:
