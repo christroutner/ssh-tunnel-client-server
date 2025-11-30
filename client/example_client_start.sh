@@ -11,7 +11,7 @@
 # - The client connects to host-ip:2222, which routes to the container's sshd
 
 # REST API port for this instance (client or server)
-export PORT=4200
+export PORT=4201
 
 # Client specific settings
 export SSH_KEY=~/.ssh/tunnel-client
