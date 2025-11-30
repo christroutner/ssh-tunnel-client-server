@@ -10,6 +10,11 @@ const config = {
   emailUser: process.env.EMAILUSER ? process.env.EMAILUSER : 'noreply@someserver.com',
   emailPassword: process.env.EMAILPASS ? process.env.EMAILPASS : 'emailpassword',
 
+  // Enable or Disable the usage of Mongo DB.
+  // Can be set via environment variable NO_MONGO=true or directly in config file.
+  // noMongo: process.env.NO_MONGO ? process.env.NO_MONGO === 'true' : false,
+  noMongo: true,
+
   // Tunnel config settings for both client and server.
   renewalPeriod: 60000 * 2,
 
