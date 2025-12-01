@@ -18,11 +18,15 @@ const RESTControllers = require('./rest-api')
 // Timer-based controllers.
 const TimerControllers = require('./timer-controllers')
 
+// Load config
+const config = require('../../config')
+
 class Controllers {
   constructor (localConfig = {}) {
     this.adapters = new Adapters()
     this.useCases = new UseCases({ adapters: this.adapters })
     this.timerControllers = new TimerControllers({ adapters: this.adapters, useCases: this.useCases })
+    this.config = config
   }
 
   // Spin up any adapter libraries that have async startup needs.
@@ -40,7 +44,8 @@ class Controllers {
   attachRESTControllers (app) {
     const restControllers = new RESTControllers({
       adapters: this.adapters,
-      useCases: this.useCases
+      useCases: this.useCases,
+      config: this.config
     })
 
     // Attach the REST API Controllers associated with the boilerplate code to the Koa app.

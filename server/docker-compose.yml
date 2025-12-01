@@ -1,25 +1,40 @@
-# Start the testnet server with the command 'docker-compose up -d'
+# Docker Compose configuration for SSH Tunnel Server
+# Start with: docker-compose up -d
+#
+# To customize the container name, create a .env file in this directory with:
+#   CONTAINER_NAME=your-container-name
+# Or set it as an environment variable: export CONTAINER_NAME=your-container-name
+# This allows running multiple instances on the same server.
 
-koa-mongodb:
-  image: mongo
-  container_name: mongo-koa
-  ports:
-    - "5555:27017" # <host port>:<container port>
-  volumes:
-    - ./database:/data/db
-  command: mongod --smallfiles --logpath=/dev/null # -- quiet
-  restart: always
-
-koa:
-  build: ./production/
-  dockerfile: Dockerfile
-  container_name: koa
-  links:
-    - koa-mongodb
-  ports:
-    - "5001:5001"  # <host port>:<container port>
-  volumes:
-#    - ./logs:/home/coinjoin/consolidating-coinjoin/logs
-    - ./keys:/home/safeuser/keys
-
-  restart: always
+services:
+  ssh-tunnel-server:
+    build:
+      context: ..  # Build from repository root (server/.. = repo root)
+      dockerfile: server/production/docker/amd64/Dockerfile
+    container_name: ${CONTAINER_NAME:-ssh-tunnel-server}
+    environment:
+      - KOA_ENV=production
+      - PORT=${PORT:-4200}
+      - CLIENT_SSH_PORT=${CLIENT_SSH_PORT:-22}
+      - CLIENT_ALIVE_PORT=${CLIENT_ALIVE_PORT:-4201}
+      - SERVER_IP=${SERVER_IP}
+      - SERVER_SSH_PORT=${SERVER_SSH_PORT:-2222}
+      - SERVER_RESET_CHECK_PORT=${SERVER_RESET_CHECK_PORT:-4200}
+      - CLIENT_ADD_PORTS=${CLIENT_ADD_PORTS}
+      - SERVER_ADD_PORTS=${SERVER_ADD_PORTS}
+    ports:
+      - "2222:22"      # SSH daemon (container:22 -> host:2222) - client connects here
+      - "4200:4200"    # REST API
+      # Note: Forwarded ports (2222, 4201, etc.) will be created by reverse SSH tunnel
+      # and will be accessible on the host via the same port numbers
+      # The reverse tunnel binds to 0.0.0.0 inside container, making them accessible on host
+    volumes:
+      - ./ssh-keys:/home/safeuser/.ssh  # SSH authorized_keys
+      - ./keys:/home/safeuser/keys         # Application keys
+      - ./logs:/home/safeuser/ssh-tunnel-server/server/logs  # Application logs
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

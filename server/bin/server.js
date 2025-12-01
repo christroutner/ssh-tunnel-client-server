@@ -71,7 +71,7 @@ async function startServer () {
   await app.listen(config.port)
   console.log(`Server started on ${config.port}`)
 
-  if (config.noMongo) {
+  if (!config.noMongo) {
     // Create the system admin user.
     const success = await adminLib.createSystemUser()
     if (success) console.log('System admin user created.')
