@@ -197,13 +197,13 @@ docker compose logs -f
 8. Check that sshd is running inside the container:
 
 ```bash
-docker compose exec ssh-tunnel-server ps aux | grep sshd
+docker exec ssh-tunnel-server ps aux | grep sshd
 ```
 
 Or if using a custom container name:
 
 ```bash
-docker compose exec <your-container-name> ps aux | grep sshd
+docker exec <your-container-name> ps aux | grep sshd
 ```
 
 ### Testing the Server Setup
