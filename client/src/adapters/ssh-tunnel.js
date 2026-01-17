@@ -29,16 +29,38 @@ class SSHTunnel {
   // on the particular needs for the client.
   async startSshTunnel () {
     try {
+      // Check if remote-admin is enabled before opening tunnels
+      const isRemoteAdminEnabled = await this.checkRemoteAdminEnabled()
+      if (!isRemoteAdminEnabled) {
+        console.log('Remote administration is not enabled. Skipping tunnel creation.')
+        return
+      }
+
       await this.openAllTunnels()
 
       this.reportRenewalTime()
 
       setInterval(async function () {
+        // Check if remote-admin is still enabled
+        const isRemoteAdminEnabled = await _this.checkRemoteAdminEnabled()
+        if (!isRemoteAdminEnabled) {
+          console.log('Remote administration is no longer enabled. Closing tunnels.')
+          _this.closeAllTunnels()
+          return
+        }
+
         const tunnelsAreOk = await _this.getStatus()
 
         if (!tunnelsAreOk) {
           console.log('Closing tunnels.')
           _this.closeAllTunnels()
+
+          // Check again before renewing
+          const stillEnabled = await _this.checkRemoteAdminEnabled()
+          if (!stillEnabled) {
+            console.log('Remote administration is no longer enabled. Not renewing tunnels.')
+            return
+          }
 
           console.log('Renewing tunnels.')
           _this.reportRenewalTime()
@@ -146,6 +168,32 @@ class SSHTunnel {
     } catch (err) {
       console.error('Error in closeTunnel()')
       throw err
+    }
+  }
+
+  // Check if remote-admin config is enabled
+  // Returns true if remote-admin is enabled, false otherwise
+  async checkRemoteAdminEnabled () {
+    try {
+      // The config API is on the cash-box-app-manager backend
+      // Using localhost since the SSH tunnel client runs on the same machine
+      const configUrl = 'http://localhost:3633/api/config/remote-admin'
+      const result = await this.axios.get(configUrl)
+
+      // API returns { key: 'remote-admin', value: { enabled: true/false } }
+      const isEnabled = result.data?.value?.enabled === true
+
+      return isEnabled
+    } catch (err) {
+      // If 404, config doesn't exist yet, so remote-admin is not enabled
+      if (err.response && err.response.status === 404) {
+        console.log('Remote-admin config not found. Assuming not enabled.')
+        return false
+      }
+
+      // For other errors, log and assume not enabled for safety
+      console.error('Error checking remote-admin config: ', err.message)
+      return false
     }
   }
 
