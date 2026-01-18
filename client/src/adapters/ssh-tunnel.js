@@ -29,38 +29,16 @@ class SSHTunnel {
   // on the particular needs for the client.
   async startSshTunnel () {
     try {
-      // Check if remote-admin is enabled before opening tunnels
-      const isRemoteAdminEnabled = await this.checkRemoteAdminEnabled()
-      if (!isRemoteAdminEnabled) {
-        console.log('Remote administration is not enabled. Skipping tunnel creation.')
-        return
-      }
-
       await this.openAllTunnels()
 
       this.reportRenewalTime()
 
       setInterval(async function () {
-        // Check if remote-admin is still enabled
-        const isRemoteAdminEnabled = await _this.checkRemoteAdminEnabled()
-        if (!isRemoteAdminEnabled) {
-          console.log('Remote administration is no longer enabled. Closing tunnels.')
-          _this.closeAllTunnels()
-          return
-        }
-
         const tunnelsAreOk = await _this.getStatus()
 
         if (!tunnelsAreOk) {
           console.log('Closing tunnels.')
           _this.closeAllTunnels()
-
-          // Check again before renewing
-          const stillEnabled = await _this.checkRemoteAdminEnabled()
-          if (!stillEnabled) {
-            console.log('Remote administration is no longer enabled. Not renewing tunnels.')
-            return
-          }
 
           console.log('Renewing tunnels.')
           _this.reportRenewalTime()
@@ -159,6 +137,8 @@ class SSHTunnel {
     for (let i = 0; i < this.cps.length; i++) {
       this.closeTunnel(this.cps[i])
     }
+    // Clear the array after closing all tunnels
+    this.cps = []
   }
 
   closeTunnel (cp) {
@@ -169,6 +149,11 @@ class SSHTunnel {
       console.error('Error in closeTunnel()')
       throw err
     }
+  }
+
+  // Check if any tunnels are currently open
+  hasOpenTunnels () {
+    return this.cps.length > 0
   }
 
   // Check if remote-admin config is enabled
