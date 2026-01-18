@@ -44,11 +44,21 @@ class TimerControllers {
 
   async checkResetTimerController () {
     try {
+      // First check if remote-admin is enabled - only reset tunnels if it's enabled
+      const isRemoteAdminEnabled = await _this.adapters.sshTunnel.checkRemoteAdminEnabled()
+      
+      if (!isRemoteAdminEnabled) {
+        // Remote-admin is disabled, don't reset tunnels
+        // The checkRemoteAdminTimerController will handle closing them if needed
+        return
+      }
+
       const status = await _this.adapters.sshTunnel.getStatus()
 
       console.log(`\ncheckResetTimerController() status: ${status}\n`)
 
       // If status comes back as false, then reset the SSH tunnels
+      // Only do this if remote-admin is enabled
       if (!status) {
         console.log('Connection status reported false. Closing and reopening all forwarded ports.')
 
@@ -56,6 +66,13 @@ class TimerControllers {
         _this.adapters.sshTunnel.closeAllTunnels()
 
         await sleep(5000)
+
+        // Double-check remote-admin is still enabled before reopening
+        const stillEnabled = await _this.adapters.sshTunnel.checkRemoteAdminEnabled()
+        if (!stillEnabled) {
+          console.log('Remote-admin was disabled while resetting. Not reopening tunnels.')
+          return
+        }
 
         // Reopen all tunnels
         _this.adapters.sshTunnel.openAllTunnels()
