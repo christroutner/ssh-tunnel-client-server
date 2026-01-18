@@ -46,7 +46,7 @@ class TimerControllers {
     try {
       // First check if remote-admin is enabled - only reset tunnels if it's enabled
       const isRemoteAdminEnabled = await _this.adapters.sshTunnel.checkRemoteAdminEnabled()
-      
+
       if (!isRemoteAdminEnabled) {
         // Remote-admin is disabled, don't reset tunnels
         // The checkRemoteAdminTimerController will handle closing them if needed
