@@ -40,6 +40,13 @@ class SSHTunnel {
           console.log('Closing tunnels.')
           _this.closeAllTunnels()
 
+          // Check if remote-admin is enabled before renewing tunnels
+          const isRemoteAdminEnabled = await _this.checkRemoteAdminEnabled()
+          if (!isRemoteAdminEnabled) {
+            console.log('Remote-admin is disabled. Not renewing tunnels.')
+            return
+          }
+
           console.log('Renewing tunnels.')
           _this.reportRenewalTime()
 
