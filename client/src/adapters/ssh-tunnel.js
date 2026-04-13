@@ -167,10 +167,9 @@ class SSHTunnel {
   // Returns true if remote-admin is enabled, false otherwise
   async checkRemoteAdminEnabled () {
     try {
-      // The config API is on the cash-box-app-manager backend
-      // Using localhost since the SSH tunnel client runs on the same machine
-      const configUrl = 'http://localhost:3633/api/config/remote-admin'
-      const result = await this.axios.get(configUrl)
+      // The config API is on the cash-box-app-manager backend (see common.remoteAdminConfigUrl).
+      const result = await this.axios.get(this.config.remoteAdminConfigUrl)
+      console.log(`checkRemoteAdminEnabled(): result.data: ${JSON.stringify(result.data)}`)
 
       // API returns { key: 'remote-admin', value: { enabled: true/false } }
       const isEnabled = result.data?.value?.enabled === true
