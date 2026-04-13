@@ -40,6 +40,13 @@ class SSHTunnel {
           console.log('Closing tunnels.')
           _this.closeAllTunnels()
 
+          // Check if remote-admin is enabled before renewing tunnels
+          const isRemoteAdminEnabled = await _this.checkRemoteAdminEnabled()
+          if (!isRemoteAdminEnabled) {
+            console.log('Remote-admin is disabled. Not renewing tunnels.')
+            return
+          }
+
           console.log('Renewing tunnels.')
           _this.reportRenewalTime()
 
@@ -137,6 +144,8 @@ class SSHTunnel {
     for (let i = 0; i < this.cps.length; i++) {
       this.closeTunnel(this.cps[i])
     }
+    // Clear the array after closing all tunnels
+    this.cps = []
   }
 
   closeTunnel (cp) {
@@ -146,6 +155,36 @@ class SSHTunnel {
     } catch (err) {
       console.error('Error in closeTunnel()')
       throw err
+    }
+  }
+
+  // Check if any tunnels are currently open
+  hasOpenTunnels () {
+    return this.cps.length > 0
+  }
+
+  // Check if remote-admin config is enabled
+  // Returns true if remote-admin is enabled, false otherwise
+  async checkRemoteAdminEnabled () {
+    try {
+      // The config API is on the cash-box-app-manager backend (see common.remoteAdminConfigUrl).
+      const result = await this.axios.get(this.config.remoteAdminConfigUrl)
+      console.log(`checkRemoteAdminEnabled(): result.data: ${JSON.stringify(result.data)}`)
+
+      // API returns { key: 'remote-admin', value: { enabled: true/false } }
+      const isEnabled = result.data?.value?.enabled === true
+
+      return isEnabled
+    } catch (err) {
+      // If 404, config doesn't exist yet, so remote-admin is not enabled
+      if (err.response && err.response.status === 404) {
+        console.log('Remote-admin config not found. Assuming not enabled.')
+        return false
+      }
+
+      // For other errors, log and assume not enabled for safety
+      console.error('Error checking remote-admin config: ', err.message)
+      return false
     }
   }
 

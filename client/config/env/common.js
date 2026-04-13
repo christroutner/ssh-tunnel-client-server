@@ -31,7 +31,12 @@ const config = {
   serverSSHPort: process.env.SERVER_SSH_PORT ? process.env.SERVER_SSH_PORT : 2222,
   // client polls this port to see if needs to renew the SSH tunnel.
   serverRestAPI: process.env.SERVER_RESET_CHECK_PORT ? process.env.SERVER_RESET_CHECK_PORT : 4200,
-  serverAddPorts: []
+  serverAddPorts: [],
+
+  // URL for cash-box-app-manager remote-admin config (checkRemoteAdminEnabled).
+  remoteAdminConfigUrl: process.env.REMOTE_ADMIN_CONFIG_URL
+    ? process.env.REMOTE_ADMIN_CONFIG_URL
+    : 'http://localhost:3633/api/config/remote-admin'
 }
 
 // If additional ports are specified, set up an SSH tunnel for each port.

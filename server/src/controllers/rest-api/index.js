@@ -18,7 +18,6 @@ class RESTControllers {
   constructor (localConfig = {}) {
     // Dependency Injection.
     this.adapters = localConfig.adapters
-    this.config = config
 
     if (!this.adapters) {
       throw new Error(
@@ -32,8 +31,8 @@ class RESTControllers {
       )
     }
 
-    // Encapsulate dependencies
-    this.config = localConfig.config
+    // Encapsulate dependencies - use provided config or fall back to default
+    this.config = localConfig.config || config
 
     // console.log('Controllers localConfig: ', localConfig)
   }
